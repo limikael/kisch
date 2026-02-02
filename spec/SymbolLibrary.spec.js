@@ -9,6 +9,6 @@ describe("SymbolLibrary",()=>{
 		//console.log(sym.getPin(1));
 		expect(sym.pins[1].at).toEqual([ -5.08, 0, 0 ]);
 
-		console.log(JSON.stringify(sym.pins[0].sexpr,null,2));
+		//console.log(JSON.stringify(sym.pins[0].sexpr,null,2));
 	});
 });
