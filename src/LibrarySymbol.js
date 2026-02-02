@@ -31,12 +31,8 @@ export default class LibrarySymbol {
   /**
    * Get pin by index (0-based) or by pin name.
    */
-  getPin(indexOrName) {
-    if (typeof indexOrName === "number") {
-      return this.pins[indexOrName];
-    } else {
-      return this.pins.find((p) => p.name === indexOrName);
-    }
+  getPin(numberOrName) {
+    return this.pins.find((p) => p.name === numberOrName || p.number==numberOrName);
   }
 }
 
