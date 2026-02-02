@@ -11,7 +11,8 @@ export default class LibrarySymbol {
     if (!this._pins) {
       // 1. Find the first nested symbol
       const nestedSymbol = this.sexpr.find(
-        (e) => Array.isArray(e) && e[0]?.atom === "symbol" && e !== this.sexpr[0]
+//        (e) => Array.isArray(e) && e[0]?.atom === "symbol" && e !== this.sexpr[0]
+        (e) => Array.isArray(e) && e[0]=="$symbol" && e !== this.sexpr[0]
       );
 
       if (!nestedSymbol) {
@@ -19,7 +20,8 @@ export default class LibrarySymbol {
       } else {
         // 2. Collect all (pin ...) inside nested symbol
         this._pins = nestedSymbol
-          .filter((e) => Array.isArray(e) && e[0]?.atom === "pin")
+//          .filter((e) => Array.isArray(e) && e[0]?.atom === "pin")
+          .filter((e) => Array.isArray(e) && e[0]=="$pin")
           .map((pinSexpr) => new LibrarySymbolPin(pinSexpr));
       }
     }
@@ -51,19 +53,19 @@ export class LibrarySymbolPin {
     this.number = null;
 
     for (const e of sexpr.slice(3)) {
-      if (!Array.isArray(e) || !e[0]?.atom) continue;
+      if (!Array.isArray(e) || e[0][0]!="$") continue;
 
-      switch (e[0].atom) {
-        case "at":
+      switch (e[0]) {
+        case "$at":
           this.at = e.slice(1).map(Number); // [x, y, rotation]
           break;
-        case "length":
+        case "$length":
           this.length = Number(e[1]);
           break;
-        case "name":
+        case "$name":
           this.name = e[1];
           break;
-        case "number":
+        case "$number":
           this.number = e[1];
           break;
       }

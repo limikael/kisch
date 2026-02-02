@@ -78,7 +78,8 @@ export default class SymbolLibrary {
 
         // Filter only top-level (symbol ...) forms
         const symbols = sexprs.filter(
-            (e) => Array.isArray(e) && e[0]?.atom === "symbol"
+//            (e) => Array.isArray(e) && e[0]?.atom === "symbol"
+            (e) => Array.isArray(e) && e[0]=="$symbol"
         );
 
         this.cache.set(libraryName, symbols);
