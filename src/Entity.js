@@ -41,7 +41,13 @@ class EntityPin {
 		if (this.isConnected(p))
 			return;
 
-		this.entity.schematic.addConnectionWire(this.getPoint(),p.getPoint());
+		if (typeof p=="string") {
+			this.entity.schematic.addLabel(this.getPoint(),p);
+		}
+
+		else {
+			this.entity.schematic.addConnectionWire(this.getPoint(),p.getPoint());
+		}
 	}
 }
 

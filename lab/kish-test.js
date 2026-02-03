@@ -13,5 +13,6 @@ let p2=schematic.entity("J3").pin(2).getPoint();
 schematic.addConnectionWire(p1,p2);*/
 
 schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(2));
+schematic.entity("J3").pin(1).connect("GND");
 
 await schematic.save();

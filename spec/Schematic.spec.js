@@ -72,5 +72,8 @@ describe("schematic",()=>{
 		expect(schematic.entity("J3").pin(4).isConnected("GND")).toEqual(true);
 		expect(schematic.entity("J1").pin(2).isConnected("GND")).toEqual(true);
 		//console.log(p1);
+
+		schematic.entity("J3").pin(1).connect("GND");
+		//expect(schematic.entity("J3").pin(1).isConnected("GND")).toEqual(false);
 	});
 });

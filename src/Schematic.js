@@ -184,6 +184,20 @@ export default class Schematic {
 			this.entities.push(e);
 		}
 	}
+
+	addLabel(point, label) {
+		let expr=["$label",label,
+			["$at",point[0],point[1],180],
+			["$effects",
+				["$font",["$size",1.27,1.27]],
+				["$justify","$right","$bottom"]
+			],
+			["$uuid",crypto.randomUUID()]
+		]
+
+		let e=new Entity(expr,this);
+		this.entities.push(e);
+	}
 }
 
 export async function openSchematic(fn, options) {

@@ -1,6 +1,6 @@
 todo:
 
-- net connections 1/2
+x net connections
 - declare
 - cli
 - footprint
