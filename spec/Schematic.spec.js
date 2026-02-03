@@ -37,4 +37,21 @@ describe("schematic",()=>{
 		expect(schematic.entity("J1").pin(1).isConnected(schematic.entity("J2").pin(1))).toEqual(false);
 		//console.log(cp);
 	});
+
+	it("can add a connection",async ()=>{
+		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		let p1=schematic.entity("J1").pin(1).getPoint();
+		let p2=schematic.entity("J3").pin(1).getPoint();
+
+		expect(schematic.arePointsConnected(p1,p2)).toEqual(false);
+
+		//schematic.addConnectionWire(p1,p2);
+		//p1.connect(p2);
+		schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(1));
+
+		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
+	});
 });

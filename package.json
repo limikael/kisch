@@ -12,6 +12,7 @@
   "packageManager": "pnpm@10.28.2",
   "type": "module",
   "devDependencies": {
+    "fs-extra": "^11.3.3",
     "jasmine": "^6.0.0"
   }
 }

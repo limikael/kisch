@@ -1,4 +1,12 @@
-export default class Point extends Array {
+export class Point extends Array {
+	constructor(a) {
+		if (a)
+			super(...[a].flat(Infinity));
+
+		else
+			super();
+	}
+
 	add(p) {
 		return Point.from([
 			this[0]+p[0],
@@ -15,6 +23,13 @@ export default class Point extends Array {
 
 	equals(p) {
 		return (pointKey(this)==pointKey(p));
+	}
+}
+
+export class Rect {
+	constructor(corner, size) {
+		this.corner=Point.from(corner);
+		this.size=Point.from(size);
 	}
 }
 

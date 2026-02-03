@@ -1,4 +1,4 @@
-import Point from "./Point.js";
+import {Point} from "./cartesian-math.js";
 
 class EntityPin {
 	constructor(sexpr, entity) {
@@ -24,6 +24,13 @@ class EntityPin {
 	isConnected(p) {
 		return this.entity.schematic.arePointsConnected(this.getPoint(),p.getPoint());
 	}
+
+	connect(p) {
+		if (this.isConnected(p))
+			return;
+
+		this.entity.schematic.addConnectionWire(this.getPoint(),p.getPoint());
+	}
 }
 
 export default class Entity {
@@ -35,6 +42,10 @@ export default class Entity {
 		for (let a of this.sexpr)
 			if (Array.isArray(a) && a[0]=="$pin")
 				this.pins.push(new EntityPin(a,this));
+	}
+
+	getSexpr() {
+		return this.sexpr;
 	}
 
 	async load() {

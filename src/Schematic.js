@@ -1,8 +1,9 @@
 import SymbolLibrary from "./SymbolLibrary.js";
 import fs, {promises as fsp} from "fs";
-import {parse as sexprParse} from "./sexpr.js";
+import {parse as sexprParse, stringify as sexprStringify} from "./sexpr.js";
 import Entity from "./Entity.js";
-import Point, {pointKey} from "./Point.js";
+import {Point, pointKey, Rect} from "./cartesian-math.js";
+import {findGridPath} from "../src/manhattan-router.js";
 
 export default class Schematic {
 	constructor(fn, options) {
@@ -22,6 +23,33 @@ export default class Schematic {
 				this.entities.push(e);
 			}
 		}
+	}
+
+	getStrippedSexpr() {
+		let sexpr=structuredClone(this.sexpr);
+
+		sexpr=sexpr.filter(el=>{
+			if (!Array.isArray(el))
+				return true;
+
+			if (["$wire","$label","$symbol"].includes(el[0]))
+				return false;
+
+			return true;
+		});
+
+		return sexpr;
+	}
+
+	getSexpr() {
+		let sexpr=this.getStrippedSexpr();
+		sexpr.push(...this.entities.map(e=>e.getSexpr()));
+		return sexpr;
+	}
+
+	async save() {
+		let content=sexprStringify([this.getSexpr()]);
+		await fsp.writeFile(this.schematicFileName,content);
 	}
 
 	getEntities() {
@@ -49,6 +77,17 @@ export default class Schematic {
 		}
 
 		return entities;
+	}
+
+	getConnectionPoints() {
+		let points=[];
+		for (let e of this.entities)
+			points.push(...e.getConnectionPoints());
+
+		points=points.map(p=>Point.from(p));
+		//console.log(points);
+
+		return points;
 	}
 
 	arePointsConnected(p, q) {
@@ -106,6 +145,34 @@ export default class Schematic {
 
 		// no path found
 		return null;
+	}
+
+	addConnectionWire(fromPoint, toPoint) {
+		let connectionPoints=this.getConnectionPoints();
+		connectionPoints=connectionPoints.filter(p=>!p.equals(fromPoint) && !p.equals(toPoint));
+		//console.log(connectionPoints);
+
+		let avoidRects=connectionPoints.map(p=>new Rect(p.sub([0.635,0.635]),[1.27,1.27]));
+		//console.log(avoidRects);
+
+		let points=findGridPath({
+			from: fromPoint,
+			to: toPoint,
+			gridSize: 1.27,
+			avoidRects: avoidRects
+		});
+
+		for (let i=0; i<points.length-1; i++) {
+			let p1=points[i], p2=points[i+1];
+			let expr=["$wire",
+				["$pts", ["$xy",p1[0],p1[1]], ["$xy",p2[0],p2[1]]],
+				["$stroke", ["$width",0], ["$type", "$default"]],
+				["$uuid",crypto.randomUUID()]
+			];
+
+			let e=new Entity(expr,this);
+			this.entities.push(e);
+		}
 	}
 }
 
