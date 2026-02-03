@@ -62,6 +62,16 @@ export default class Schematic {
 				return e;
 	}
 
+	getLabelEntities(label) {
+		let entities=[];
+
+		for (let e of this.entities)
+			if (e.getLabel()==label)
+				entities.push(e);
+
+		return entities;
+	}
+
 	entity(ref) {
 		return this.getEntity(ref);
 	}

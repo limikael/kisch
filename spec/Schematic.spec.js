@@ -54,4 +54,23 @@ describe("schematic",()=>{
 
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
 	});
+
+	it("can handle net labels",async ()=>{
+		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		let p1=schematic.entity("J2").pin(1).getPoint();
+		let entities=schematic.getEntitiesByConnectionPoint(p1);
+		//console.log(entities);
+
+		expect(entities.length).toEqual(2);
+		expect(entities.filter(e=>e.getType()=="label")[0].getLabel()).toEqual("5V");
+
+		expect(schematic.entity("J2").pin(1).isConnected("5V")).toEqual(true);
+		expect(schematic.entity("J2").pin(1).isConnected("GND")).toEqual(false);
+		expect(schematic.entity("J3").pin(4).isConnected("GND")).toEqual(true);
+		expect(schematic.entity("J1").pin(2).isConnected("GND")).toEqual(true);
+		//console.log(p1);
+	});
 });

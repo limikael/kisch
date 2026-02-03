@@ -22,7 +22,19 @@ class EntityPin {
 	}
 
 	isConnected(p) {
-		return this.entity.schematic.arePointsConnected(this.getPoint(),p.getPoint());
+		if (typeof p=="string") {
+			for (let e of this.entity.schematic.getLabelEntities(p)) {
+				let p=e.getConnectionPoints()[0];
+				if (this.entity.schematic.arePointsConnected(this.getPoint(),p))
+					return true;
+			}
+
+			return false;
+		}
+
+		else {
+			return this.entity.schematic.arePointsConnected(this.getPoint(),p.getPoint());
+		}
 	}
 
 	connect(p) {
@@ -38,6 +50,8 @@ export default class Entity {
 		this.schematic=schematic;
 		this.sexpr=sexpr;
 		this.pins=[];
+
+		this.getType();
 
 		for (let a of this.sexpr)
 			if (Array.isArray(a) && a[0]=="$pin")
@@ -73,7 +87,11 @@ export default class Entity {
 		for (let a of this.sexpr)
 			if (Array.isArray(a) && a[0]=="$at")
 				return a.slice(1).map(Number);
-		}
+	}
+
+	getLabel() {
+		return this.sexpr[1];
+	}
 
 	getLibrarySymbol() {
 		return this.librarySymbol;
@@ -89,7 +107,12 @@ export default class Entity {
 	}
 
 	getType() {
-		return this.sexpr[0].slice(1);
+		let t=this.sexpr[0].slice(1);
+
+		if (!["symbol","wire","label"].includes(t))
+			throw new Error("Unknown entity: "+t);
+
+		return t;
 	}
 
 	getConnectionPoints() {
@@ -99,7 +122,7 @@ export default class Entity {
 				break;
 
 			case "label":
-				return []; //implement!!!
+				return [this.sexpr[2].slice(1)];
 				break;
 
 			case "symbol":
