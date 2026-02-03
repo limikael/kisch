@@ -25,6 +25,14 @@ export default class Schematic {
 		}
 	}
 
+	getUuid() {
+		for (let o of this.sexpr) {
+			//console.log(o);
+			if (Array.isArray(o) && o[0]=="$uuid")
+				return o[1];
+		}
+	}
+
 	getStrippedSexpr() {
 		let sexpr=structuredClone(this.sexpr);
 
@@ -160,11 +168,7 @@ export default class Schematic {
 	addConnectionWire(fromPoint, toPoint) {
 		let connectionPoints=this.getConnectionPoints();
 		connectionPoints=connectionPoints.filter(p=>!p.equals(fromPoint) && !p.equals(toPoint));
-		//console.log(connectionPoints);
-
 		let avoidRects=connectionPoints.map(p=>new Rect(p.sub([0.635,0.635]),[1.27,1.27]));
-		//console.log(avoidRects);
-
 		let points=findGridPath({
 			from: fromPoint,
 			to: toPoint,
@@ -197,6 +201,66 @@ export default class Schematic {
 
 		let e=new Entity(expr,this);
 		this.entities.push(e);
+	}
+
+	getLibSymbolsExpr() {
+		for (let expr of this.sexpr)
+			if (Array.isArray(expr) && expr[0]=="$lib_symbols")
+				return expr;
+	}
+
+	async ensureLibSymbol(symbol) {
+		let libSymbolsExpr=this.getLibSymbolsExpr();
+		for (let e of libSymbolsExpr)
+			if (Array.isArray(e) && e[0]=="$symbol" && e[1]==symbol)
+				return;
+
+		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
+		//console.log("adding: "+symbol);
+		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
+	}
+
+	async addSymbol(reference, {symbol}) {
+		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
+		let point=[78.74,78.74];
+
+		let expr=["$symbol",
+			["$lib_id",symbol],
+			["$at",point[0],point[1],0],
+			["$unit",1],
+			["$exclude_from_sim","$no"],
+			["$in_bom","$yes"],
+			["$on_board","$yes"],
+			["$dnp","$no"],
+			["$fields_autoplaced","$yes"],
+			["$uuid",crypto.randomUUID()]
+		];
+
+		expr.push(["$property","Reference",reference,
+			["$at",point[0],point[1],0],
+			["$effects",
+				["$font",["$size",1.27,1.27]],
+				["$justify","$left"],
+			]
+		]);
+
+		for (let i=1; i<=librarySymbol.pins.length; i++)
+			expr.push(["$pin",String(i),["$uuid",crypto.randomUUID()]]);
+
+		expr.push(["$instances",
+			["$project","",
+				["$path","/"+this.getUuid(),
+					["$reference",reference],
+					["$unit",1]
+				]
+			]
+		]);
+
+		let e=new Entity(expr,this);
+		await e.load();
+		this.entities.push(e);
+
+		await this.ensureLibSymbol(symbol);
 	}
 }
 

@@ -45,7 +45,7 @@ export default class SymbolLibrary {
             );
         }
 
-        return new LibrarySymbol(sexpr);
+        return new LibrarySymbol(sexpr,qualifiedName);
     }
 
     /**

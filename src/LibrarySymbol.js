@@ -1,7 +1,8 @@
 export default class LibrarySymbol {
-  constructor(sexpr) {
+  constructor(sexpr, qualifiedName) {
     this.sexpr = sexpr;
     this._pins = null; // lazy parse
+    this.qualifiedName=qualifiedName;
   }
 
   /**
@@ -33,6 +34,12 @@ export default class LibrarySymbol {
    */
   getPin(numberOrName) {
     return this.pins.find((p) => p.name === numberOrName || p.number==numberOrName);
+  }
+
+  getQualifiedSexpr() {
+    let expr=structuredClone(this.sexpr);
+    expr[1]=this.qualifiedName;
+    return expr;
   }
 }
 

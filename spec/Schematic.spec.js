@@ -76,4 +76,17 @@ describe("schematic",()=>{
 		schematic.entity("J3").pin(1).connect("GND");
 		//expect(schematic.entity("J3").pin(1).isConnected("GND")).toEqual(false);
 	});
+
+	it("can declare symbols",async ()=>{
+		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		await schematic.addSymbol("J4",{
+			symbol: "Connector_Generic:Conn_01x08"
+		});
+
+		schematic.entity("J4").pin(1).connect("GND");
+		schematic.entity("J4").pin(7).connect(schematic.entity("J3").pin(3));
+	});
 });
