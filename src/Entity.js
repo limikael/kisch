@@ -65,7 +65,7 @@ export default class Entity {
 				this.pins.push(new EntityPin(a,this));
 	}
 
-	getSexpr() {
+	getSexp() {
 		return this.sexpr;
 	}
 

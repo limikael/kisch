@@ -13,10 +13,10 @@ export default class Schematic {
 	}
 
 	async load() {
-		this.sexpr=sexpParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
+		this.sexp=sexpParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
 		this.entities=[];
 
-		for (let o of this.sexpr) {
+		for (let o of this.sexp) {
 			if (["wire","label","symbol"].includes(sexpCallName(o))) {
 				let e=new Entity(o,this);
 				await e.load();
@@ -27,18 +27,18 @@ export default class Schematic {
 				this.uuid=o[1];
 		}
 
-		this.sexpr=this.sexpr.filter(o=>!["wire","label","symbol","uuid"].includes(sexpCallName(o)));
+		this.sexp=this.sexp.filter(o=>!["wire","label","symbol","uuid"].includes(sexpCallName(o)));
 	}
 
-	getSexpr() {
-		let sexpr=structuredClone(this.sexpr);
-		sexpr.push(...this.entities.map(e=>e.getSexpr()));
-		sexpr.push([sym("uuid"),this.uuid]);
-		return sexpr;
+	getSexp() {
+		let sexp=structuredClone(this.sexp);
+		sexp.push(...this.entities.map(e=>e.getSexp()));
+		sexp.push([sym("uuid"),this.uuid]);
+		return sexp;
 	}
 
 	async save() {
-		let content=sexpStringify([this.getSexpr()],2);
+		let content=sexpStringify([this.getSexp()],2);
 		await fsp.writeFile(this.schematicFileName,content);
 	}
 
@@ -185,16 +185,16 @@ export default class Schematic {
 		this.entities.push(e);
 	}
 
-	getLibSymbolsExpr() {
+	getLibSymbolsExp() {
 		//return sexpFirst(this.sexpr,x=>sexpCallName(x)=="lib_symbols")
 
-		for (let expr of this.sexpr)
-			if (sexpCallName(expr)=="lib_symbols")
-				return expr;
+		for (let exp of this.sexp)
+			if (sexpCallName(exp)=="lib_symbols")
+				return exp;
 	}
 
 	async ensureLibSymbol(symbol) {
-		let libSymbolsExpr=this.getLibSymbolsExpr();
+		let libSymbolsExpr=this.getLibSymbolsExp();
 		for (let e of libSymbolsExpr)
 			if (sexpCallName(e)=="symbol" && e[1]==symbol)
 				return;
