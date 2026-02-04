@@ -4,6 +4,7 @@ import Entity from "./Entity.js";
 import {Point, pointKey, Rect} from "./cartesian-math.js";
 import {findGridPath} from "../src/manhattan-router.js";
 import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "./sexp.js";
+import {placeRect} from "./place-rect.js";
 
 export default class Schematic {
 	constructor(fn, options) {
@@ -52,11 +53,21 @@ export default class Schematic {
 				return e;
 	}
 
+	getSymbolEntities() {
+		let entities=[];
+
+		for (let e of this.entities)
+			if (e.getType()=="symbol")
+				entities.push(e);
+
+		return entities;
+	}
+
 	getLabelEntities(label) {
 		let entities=[];
 
 		for (let e of this.entities)
-			if (e.getLabel()==label)
+			if (e.getType()=="label" && e.getLabel()==label)
 				entities.push(e);
 
 		return entities;
@@ -204,13 +215,26 @@ export default class Schematic {
 		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
 	}
 
-	async addSymbol(reference, {symbol}) {
+	async addSymbol(reference, {symbol, at}) {
 		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
-		let point=[78.74,78.74];
+		let rects=this.getSymbolEntities().map(e=>e.getBoundingRect().pad(2.54*4));
+
+		let center=new Point(101.6,101.6);
+		if (rects.length)
+			center=rects.reduce((r,q)=>r.union(q)).getCenter().snap(2.54);
+
+		if (!at) {
+			at=placeRect({
+				start: center,
+				rect: librarySymbol.getBoundingRect(),
+				avoid: rects,
+				step: 2.54,
+			});
+		}
 
 		let expr=[sym("symbol"),
 			[sym("lib_id"),symbol],
-			[sym("at"),point[0],point[1],0],
+			[sym("at"),at[0],at[1],0],
 			[sym("unit"),1],
 			[sym("exclude_from_sim"),sym("no")],
 			[sym("in_bom"),sym("yes")],
@@ -221,7 +245,7 @@ export default class Schematic {
 		];
 
 		expr.push([sym("property"),"Reference",reference,
-			[sym("at"),point[0],point[1],0],
+			[sym("at"),at[0],at[1],0],
 			[sym("effects"),
 				[sym("font"),[sym("size"),1.27,1.27]],
 				[sym("justify"),sym("left")],

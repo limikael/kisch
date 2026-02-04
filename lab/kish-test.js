@@ -15,11 +15,21 @@ schematic.addConnectionWire(p1,p2);*/
 schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(2));
 schematic.entity("J3").pin(1).connect("GND");
 
-await schematic.addSymbol("J4",{
-	symbol: "Connector_Generic:Conn_01x08"
-});
+let r=schematic.entity("J3").getBoundingRect();
 
+for (let i=4; i<20; i++) {
+	await schematic.addSymbol("J"+i,{
+		symbol: "Connector_Generic:Conn_01x08",
+	//	at: r.getBottomRight()//corner
+	});
+}
+
+//console.log("connecting gnd")
 schematic.entity("J4").pin(1).connect("GND");
+
+//console.log("connecting pin")
 schematic.entity("J4").pin(4).connect(schematic.entity("J3").pin(3));
+
+//console.log("done...")
 
 await schematic.save();

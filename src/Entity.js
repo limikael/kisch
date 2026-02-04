@@ -1,5 +1,6 @@
 import {Point} from "./cartesian-math.js";
 import {sym, symName, sexpCallName} from "./sexp.js";
+import {Rect} from "./cartesian-math.js";
 
 class EntityPin {
 	constructor(sexpr, entity) {
@@ -81,19 +82,18 @@ export default class Entity {
 		this.librarySymbol=await this.schematic.symbolLibrary.loadLibrarySymbol(this.getLibId())
 		if (!this.librarySymbol)
 			throw new Error("Unable to load symbol");
-
 	}
 
 	getReference() {
-		for (let a of this.sexpr)
-			if (sexpCallName(a)=="property" && a[1]=="Reference")
-				return a[2];
+		if (this.getType()!="symbol")
+			return;
+
+		let el=this.sexpr.find(a=>sexpCallName(a)=="property" && a[1]=="Reference");
+		return el[2];
 	}
 
 	getLibId() {
-		for (let a of this.sexpr)
-			if (sexpCallName(a)=="lib_id")
-				return a[1];
+		return this.sexpr.find(x=>sexpCallName(x)=="lib_id")[1];
 	}
 
 	getAt() {
@@ -103,7 +103,19 @@ export default class Entity {
 	}
 
 	getLabel() {
+		if (this.getType()!="label")
+			throw new Error("Not a label");
+
 		return this.sexpr[1];
+	}
+
+	getBoundingRect() {
+		//console.log(this.librarySymbol);
+		let r=this.librarySymbol.getBoundingRect();
+		//console.log(r);
+		let p=Point.from(this.getAt());
+
+		return new Rect(p.add(r.corner),r.size);
 	}
 
 	getLibrarySymbol() {

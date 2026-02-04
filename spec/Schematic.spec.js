@@ -84,6 +84,15 @@ describe("schematic",()=>{
 		//expect(schematic.entity("J3").pin(1).isConnected("GND")).toEqual(false);
 	});
 
+	it("can get rectangles",async ()=>{
+		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		let r=schematic.entity("J3").getBoundingRect(); //pin(1).connect("GND");
+		//console.log(r);
+	});
+
 	it("can declare symbols",async ()=>{
 		let schematic=await openSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
@@ -95,5 +104,8 @@ describe("schematic",()=>{
 
 		schematic.entity("J4").pin(1).connect("GND");
 		schematic.entity("J4").pin(7).connect(schematic.entity("J3").pin(3));
+
+		expect(schematic.entity("J4").pin(7).isConnected(schematic.entity("J3").pin(3))).toEqual(true);
+		expect(schematic.entity("J4").pin(7).isConnected(schematic.entity("J3").pin(2))).toEqual(false);
 	});
 });
