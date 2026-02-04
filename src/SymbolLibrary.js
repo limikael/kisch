@@ -13,6 +13,14 @@ export default class SymbolLibrary {
         this.dirPath = dirPath;
         this.index = new Map(); // Maps libraryName -> filename
         this.cache = new Map(); // Maps libraryName -> parsed list of symbols
+        this.librarySymbols={};
+    }
+
+    getLibrarySymbol(qualifiedName) {
+        if (!this.librarySymbols[qualifiedName])
+            throw new Error("Symbol not loaded: "+qualifiedName);
+
+        return this.librarySymbols[qualifiedName];
     }
 
     /**
@@ -21,6 +29,9 @@ export default class SymbolLibrary {
      * @returns {Promise<LibrarySymbol>}
      */
     async loadLibrarySymbol(qualifiedName) {
+        if (this.librarySymbols[qualifiedName])
+            return this.librarySymbols[qualifiedName];
+
         const [libraryName, symbolName] = qualifiedName.split(":");
         if (!libraryName || !symbolName) {
             throw new Error(
@@ -45,7 +56,9 @@ export default class SymbolLibrary {
             );
         }
 
-        return new LibrarySymbol(sexpr,qualifiedName);
+        this.librarySymbols[qualifiedName]=new LibrarySymbol(sexpr,qualifiedName);
+
+        return this.librarySymbols[qualifiedName];
     }
 
     /**
@@ -78,8 +91,6 @@ export default class SymbolLibrary {
 
         // Filter only top-level (symbol ...) forms
         const symbols = sexprs.filter(
-//            (e) => Array.isArray(e) && e[0]?.atom === "symbol"
-//            (e) => Array.isArray(e) && e[0]=="$symbol"
             (e) => Array.isArray(e) && symEq(e[0],"symbol")
         );
 

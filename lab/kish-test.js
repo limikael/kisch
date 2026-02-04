@@ -8,28 +8,28 @@ let schematic=await openSchematic("lab/kitest/kitest.kicad_sch",{
 	symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 });
 
-/*let p1=schematic.entity("J1").pin(1).getPoint();
-let p2=schematic.entity("J3").pin(2).getPoint();
-schematic.addConnectionWire(p1,p2);*/
+await schematic.use(
+	"Connector_Generic:Conn_01x08"
+);
 
-schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(2));
-schematic.entity("J3").pin(1).connect("GND");
+schematic.sym("J1").pin(1).connect(schematic.sym("J3").pin(2));
+schematic.sym("J3").pin(1).connect("GND");
+schematic.sym("J1").pin(1).connect(schematic.sym("J3").pin(1));
 
-let r=schematic.entity("J3").getBoundingRect();
+let r=schematic.sym("J3").getBoundingRect();
 
-for (let i=4; i<20; i++) {
-	await schematic.addSymbol("J"+i,{
+/*for (let i=4; i<20; i++) {
+	schematic.declare("J"+i,{
 		symbol: "Connector_Generic:Conn_01x08",
-	//	at: r.getBottomRight()//corner
 	});
-}
+}*/
 
-//console.log("connecting gnd")
-schematic.entity("J4").pin(1).connect("GND");
+schematic.declare("J4",{
+	symbol: "Connector_Generic:Conn_01x04",
+});
 
-//console.log("connecting pin")
-schematic.entity("J4").pin(4).connect(schematic.entity("J3").pin(3));
-
-//console.log("done...")
+schematic.sym("J4").pin(1).connect("GND");
+schematic.sym("J4").pin(4).connect(schematic.sym("J3").pin(3));
+schematic.sym("J1").pin(1).connect(schematic.sym("J4").pin(1));
 
 await schematic.save();

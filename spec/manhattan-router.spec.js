@@ -82,3 +82,71 @@ describe("manhattan-router", () => {
 		expect(a).toEqual(b);
 	});
 });
+
+describe("findGridPath – avoidLines", () => {
+
+	it("avoids drawing collinear overlapping horizontal lines", () => {
+		const path = findGridPath({
+			from: new Point([0, 0]),
+			to: new Point([10, 0]),
+			gridSize: 5,
+			avoidRects: [],
+			avoidLines: [
+				{ a: new Point([0, 0]), b: new Point([10, 0]) }
+			]
+		});
+
+		// must detour
+		expect(path.length).toBeGreaterThan(2);
+
+		// should not contain straight horizontal segment at y=0
+		for (let i = 0; i < path.length - 1; i++) {
+			const a = path[i];
+			const b = path[i + 1];
+			if (a[1] === 0 && b[1] === 0) {
+				fail("Path contains forbidden collinear segment");
+			}
+		}
+	});
+
+	it("allows orthogonal crossing of avoidLines", () => {
+		const path = findGridPath({
+			from: new Point([5, -5]),
+			to: new Point([5, 5]),
+			gridSize: 5,
+			avoidRects: [],
+			avoidLines: [
+				{ a: new Point([0, 0]), b: new Point([10, 0]) }
+			]
+		});
+
+		// straight vertical path is allowed
+		expect(path).toEqual([
+			new Point([5, -5]),
+			new Point([5, 5])
+		]);
+	});
+
+	it("avoids vertical collinear overlap as well", () => {
+		const path = findGridPath({
+			from: new Point([0, 0]),
+			to: new Point([0, 10]),
+			gridSize: 5,
+			avoidRects: [],
+			avoidLines: [
+				{ a: new Point([0, 0]), b: new Point([0, 10]) }
+			]
+		});
+
+		expect(path.length).toBeGreaterThan(2);
+
+		for (let i = 0; i < path.length - 1; i++) {
+			const a = path[i];
+			const b = path[i + 1];
+			if (a[0] === 0 && b[0] === 0) {
+				fail("Vertical collinear overlap detected");
+			}
+		}
+	});
+
+});

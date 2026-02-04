@@ -15,8 +15,8 @@ describe("schematic",()=>{
 			//console.log(entity.getType(),": ",entity.getConnectionPoints());
 		}
 
-		let j1=schematic.getEntity("J1");
-		let j2=schematic.getEntity("J2");
+		let j1=schematic.sym("J1");
+		let j2=schematic.sym("J2");
 
 		//console.log(j1.pin(1).isConnected(j2.pin(2)));
 		expect(j1.pin(1).isConnected(j2.pin(2))).toEqual(true);
@@ -40,8 +40,8 @@ describe("schematic",()=>{
 
 		//expect(p1.isConnected(p2)).toEqual(true);
 
-		expect(schematic.entity("J1").pin(1).isConnected(schematic.entity("J2").pin(2))).toEqual(true);
-		expect(schematic.entity("J1").pin(1).isConnected(schematic.entity("J2").pin(1))).toEqual(false);
+		expect(schematic.sym("J1").pin(1).isConnected(schematic.sym("J2").pin(2))).toEqual(true);
+		expect(schematic.sym("J1").pin(1).isConnected(schematic.sym("J2").pin(1))).toEqual(false);
 		//console.log(cp);
 	});
 
@@ -50,14 +50,14 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		let p1=schematic.entity("J1").pin(1).getPoint();
-		let p2=schematic.entity("J3").pin(1).getPoint();
+		let p1=schematic.sym("J1").pin(1).getPoint();
+		let p2=schematic.sym("J3").pin(1).getPoint();
 
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(false);
 
 		//schematic.addConnectionWire(p1,p2);
 		//p1.connect(p2);
-		schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(1));
+		schematic.sym("J1").pin(1).connect(schematic.sym("J3").pin(1));
 
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
 	});
@@ -67,21 +67,21 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		let p1=schematic.entity("J2").pin(1).getPoint();
+		let p1=schematic.sym("J2").pin(1).getPoint();
 		let entities=schematic.getEntitiesByConnectionPoint(p1);
 		//console.log(entities);
 
 		expect(entities.length).toEqual(2);
 		expect(entities.filter(e=>e.getType()=="label")[0].getLabel()).toEqual("5V");
 
-		expect(schematic.entity("J2").pin(1).isConnected("5V")).toEqual(true);
-		expect(schematic.entity("J2").pin(1).isConnected("GND")).toEqual(false);
-		expect(schematic.entity("J3").pin(4).isConnected("GND")).toEqual(true);
-		expect(schematic.entity("J1").pin(2).isConnected("GND")).toEqual(true);
+		expect(schematic.sym("J2").pin(1).isConnected("5V")).toEqual(true);
+		expect(schematic.sym("J2").pin(1).isConnected("GND")).toEqual(false);
+		expect(schematic.sym("J3").pin(4).isConnected("GND")).toEqual(true);
+		expect(schematic.sym("J1").pin(2).isConnected("GND")).toEqual(true);
 		//console.log(p1);
 
-		schematic.entity("J3").pin(1).connect("GND");
-		//expect(schematic.entity("J3").pin(1).isConnected("GND")).toEqual(false);
+		schematic.sym("J3").pin(1).connect("GND");
+		//expect(schematic.sym("J3").pin(1).isConnected("GND")).toEqual(false);
 	});
 
 	it("can get rectangles",async ()=>{
@@ -89,7 +89,7 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		let r=schematic.entity("J3").getBoundingRect(); //pin(1).connect("GND");
+		let r=schematic.sym("J3").getBoundingRect(); //pin(1).connect("GND");
 		//console.log(r);
 	});
 
@@ -98,14 +98,18 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		await schematic.addSymbol("J4",{
+		await schematic.use(
+			"Connector_Generic:Conn_01x08"
+		);
+
+		schematic.declare("J4",{
 			symbol: "Connector_Generic:Conn_01x08"
 		});
 
-		schematic.entity("J4").pin(1).connect("GND");
-		schematic.entity("J4").pin(7).connect(schematic.entity("J3").pin(3));
+		schematic.sym("J4").pin(1).connect("GND");
+		schematic.sym("J4").pin(7).connect(schematic.sym("J3").pin(3));
 
-		expect(schematic.entity("J4").pin(7).isConnected(schematic.entity("J3").pin(3))).toEqual(true);
-		expect(schematic.entity("J4").pin(7).isConnected(schematic.entity("J3").pin(2))).toEqual(false);
+		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(3))).toEqual(true);
+		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(2))).toEqual(false);
 	});
 });

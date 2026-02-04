@@ -70,6 +70,20 @@ export default class Entity {
 		return this.sexpr;
 	}
 
+	init() {
+		if (this.getType()!="symbol")
+			return;
+
+		let id=this.getLibId();
+		if (!id)
+			throw new Error("Unable to load symbol");
+
+		//console.log("id: "+id);
+		this.librarySymbol=this.schematic.symbolLibrary.getLibrarySymbol(this.getLibId())
+		if (!this.librarySymbol)
+			throw new Error("Unable to load symbol");
+	}
+
 	async load() {
 		if (this.getType()!="symbol")
 			return;

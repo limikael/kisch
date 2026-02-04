@@ -1,4 +1,4 @@
-import {Point, pointKey} from "../src/cartesian-math.js";
+import { Point, pointKey } from "../src/cartesian-math.js";
 
 function manhattan(a, b) {
 	return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
@@ -7,8 +7,12 @@ function manhattan(a, b) {
 function rangeOverlap(a1, a2, b1, b2) {
 	const minA = Math.min(a1, a2);
 	const maxA = Math.max(a1, a2);
-	return maxA >= b1 && minA <= b2;
+	const minB = Math.min(b1, b2);
+	const maxB = Math.max(b1, b2);
+	return maxA > minB && maxB > minA;
 }
+
+/* ───────────────────────── Rect blocking (unchanged) ───────────────────────── */
 
 export function segmentBlocked(a, b, rects) {
 	const ax = a[0], ay = a[1];
@@ -20,7 +24,7 @@ export function segmentBlocked(a, b, rects) {
 		const rw = r.size[0];
 		const rh = r.size[1];
 
-		// horizontal segment
+		// horizontal
 		if (ay === by) {
 			if (
 				ay >= ry && ay <= ry + rh &&
@@ -28,7 +32,7 @@ export function segmentBlocked(a, b, rects) {
 			) return true;
 		}
 
-		// vertical segment
+		// vertical
 		if (ax === bx) {
 			if (
 				ax >= rx && ax <= rx + rw &&
@@ -39,6 +43,39 @@ export function segmentBlocked(a, b, rects) {
 
 	return false;
 }
+
+/* ───────────────────────── Line blocking (NEW) ───────────────────────── */
+
+function similar(a,b) {
+	return Math.abs(a-b)<0.0000001
+}
+
+function segmentOverlapsLine(a1, a2, b1, b2) {
+	// horizontal
+//	if (a1[1] === a2[1] && b1[1] === b2[1] && a1[1] === b1[1]) {
+	if (similar(a1[1],a2[1]) && similar(b1[1],b2[1]) && similar(a1[1],b1[1])) {
+		return rangeOverlap(a1[0], a2[0], b1[0], b2[0]);
+	}
+
+	// vertical
+//	if (a1[0] === a2[0] && b1[0] === b2[0] && a1[0] === b1[0]) {
+	if (similar(a1[0],a2[0]) && similar(b1[0],b2[0]) && similar(a1[0],b1[0])) {
+		return rangeOverlap(a1[1], a2[1], b1[1], b2[1]);
+	}
+
+	return false;
+}
+
+export function segmentBlockedByLines(a, b, lines) {
+	for (const { a: l1, b: l2 } of lines) {
+		if (segmentOverlapsLine(a, b, l1, l2)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/* ───────────────────────── Path compression (unchanged) ───────────────────────── */
 
 function compressPath(points) {
 	if (points.length <= 2) return points;
@@ -55,7 +92,6 @@ function compressPath(points) {
 		const bcx = c[0] - b[0];
 		const bcy = c[1] - b[1];
 
-		// same direction → skip
 		if (
 			(abx === 0 && bcx === 0) ||
 			(aby === 0 && bcy === 0)
@@ -65,25 +101,25 @@ function compressPath(points) {
 	}
 
 	out.push(points[points.length - 1]);
-	return out;
+	return out; //.map(p=>p.snap(2.54));
 }
+
+/* ───────────────────────── Main router ───────────────────────── */
 
 export function findGridPath({
 	from,
 	to,
+	gridSize,
 	avoidRects = [],
-	gridSize
+	avoidLines = []
 }) {
-	const start = from;
-	const goal = to;
-
 	const open = new Map();
 	const closed = new Set();
 
-	open.set(pointKey(start), {
-		point: start,
+	open.set(pointKey(from), {
+		point: from,
 		g: 0,
-		f: manhattan(start, goal),
+		f: manhattan(from, to),
 		parent: null
 	});
 
@@ -95,13 +131,12 @@ export function findGridPath({
 	];
 
 	while (open.size) {
-		// pick node with lowest f
 		let current = null;
 		for (const n of open.values()) {
 			if (!current || n.f < current.f) current = n;
 		}
 
-		if (current.point.equals(goal)) {
+		if (current.point.equals(to)) {
 			const path = [];
 			let c = current;
 			while (c) {
@@ -120,9 +155,10 @@ export function findGridPath({
 
 			if (closed.has(key)) continue;
 			if (segmentBlocked(current.point, next, avoidRects)) continue;
+			if (segmentBlockedByLines(current.point, next, avoidLines)) continue;
 
 			const g = current.g + gridSize;
-			const f = g + manhattan(next, goal);
+			const f = g + manhattan(next, to);
 
 			const existing = open.get(key);
 			if (!existing || g < existing.g) {

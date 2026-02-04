@@ -47,10 +47,12 @@ export default class Schematic {
 		return this.entities;
 	}
 
-	getEntity(ref) {
+	sym(ref) {
 		for (let e of this.entities)
-			if (e.getReference()==ref)
+			if (e.getType()=="symbol" && e.getReference()==ref)
 				return e;
+
+		throw new Error("Undefined symbol reference: "+ref);
 	}
 
 	getSymbolEntities() {
@@ -73,10 +75,6 @@ export default class Schematic {
 		return entities;
 	}
 
-	entity(ref) {
-		return this.getEntity(ref);
-	}
-
 	getEntitiesByConnectionPoint(connectonPoint) {
 		connectonPoint=Point.from(connectonPoint);
 		let entities=[];
@@ -96,8 +94,6 @@ export default class Schematic {
 			points.push(...e.getConnectionPoints());
 
 		points=points.map(p=>Point.from(p));
-		//console.log(points);
-
 		return points;
 	}
 
@@ -162,11 +158,22 @@ export default class Schematic {
 		let connectionPoints=this.getConnectionPoints();
 		connectionPoints=connectionPoints.filter(p=>!p.equals(fromPoint) && !p.equals(toPoint));
 		let avoidRects=connectionPoints.map(p=>new Rect(p.sub([0.635,0.635]),[1.27,1.27]));
+
+		let avoidLines=this.entities.filter(e=>e.getType()=="wire").map(e=>{
+			return ({
+				a: e.getConnectionPoints()[0],
+				b: e.getConnectionPoints()[1],
+			})
+		});
+
+		//console.log(avoidLines);
+
 		let points=findGridPath({
 			from: fromPoint,
 			to: toPoint,
 			gridSize: 1.27,
-			avoidRects: avoidRects
+			avoidRects: avoidRects,
+			avoidLines: avoidLines
 		});
 
 		for (let i=0; i<points.length-1; i++) {
@@ -215,8 +222,25 @@ export default class Schematic {
 		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
 	}
 
-	async addSymbol(reference, {symbol, at}) {
-		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
+	async use(...symbols) {
+		symbols=symbols.flat(Infinity);
+		for (let symbol of symbols)
+			await this.ensureLibSymbol(symbol);
+	}
+
+	declare(ref, options) {
+		let entity=this.entities.find(e=>e.getType()=="symbol" && e.getReference()==ref);
+		if (!entity)
+			entity=this.addSymbol(ref,options);
+	}
+
+	addSymbol(reference, {symbol, at}) {
+		let entity=this.entities.find(e=>e.getType()=="symbol" && e.getReference()==reference);
+		if (entity)
+			throw new Error("Reference already exists: "+reference);
+
+		let librarySymbol=this.symbolLibrary.getLibrarySymbol(symbol);
+		//let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
 		let rects=this.getSymbolEntities().map(e=>e.getBoundingRect().pad(2.54*4));
 
 		let center=new Point(101.6,101.6);
@@ -265,10 +289,10 @@ export default class Schematic {
 		]);
 
 		let e=new Entity(expr,this);
-		await e.load();
+		e.init();
 		this.entities.push(e);
 
-		await this.ensureLibSymbol(symbol);
+		return e;
 	}
 }
 
