@@ -1,125 +1,174 @@
+import util from 'node:util';
+
 // sexpr.js
-// ES module: npm install this file as ./sexpr.js
+// ES module
+
+// --------------------
+// Symbol representation
+// --------------------
+
+export function Sym(name) {
+  return {
+    type: 'sym',
+    name,
+    equals(other) {
+      return isSym(other) && other.name === name
+    },
+    toString() {
+      return name
+    },
+    toJSON() {
+      throw new Error("Can't use Sym in JSON");
+    },
+    [util.inspect.custom]() {
+      return `Sym("${name}")`
+    }
+  }
+}
+
+export function isSym(x) {
+  return !!x && typeof x === 'object' && x.type === 'sym'
+}
+
+// --------------------
+// Parser
+// --------------------
 
 /**
  * Parse a string into s-expressions.
- * Atoms become $-prefixed strings.
- * Strings stay as JS strings, numbers stay as numbers.
- * Escapes $ in strings using $$.
+ * Symbols become Sym(name)
+ * Strings become JS strings
+ * Numbers become JS numbers
  */
 export function parse(input) {
-  let i = 0;
+  let i = 0
 
   const skipWhitespace = () => {
-    while (i < input.length && /\s/.test(input[i])) i++;
-  };
+    while (i < input.length && /\s/.test(input[i])) i++
+  }
 
   const parseString = () => {
-    let str = '';
-    i++; // skip opening "
+    let str = ''
+    i++ // skip opening "
     while (i < input.length) {
       if (input[i] === '"') {
-        i++;
-        break;
+        i++
+        break
       } else if (input[i] === '\\') {
-        i++;
-        str += input[i] || '';
+        i++
+        str += input[i] || ''
       } else {
-        str += input[i];
+        str += input[i]
       }
-      i++;
+      i++
     }
-    // escape $ at start to distinguish from atoms
-    if (str.startsWith('$')) str = '$$' + str.slice(1);
-    return str;
-  };
+    return str
+  }
 
   const parseAtomOrNumber = () => {
-    let start = i;
-    while (i < input.length && /[^\s()]/.test(input[i])) i++;
-    const token = input.slice(start, i);
-    if (!isNaN(token)) return Number(token);
-    // atom → $-prefixed string
-    return '$' + token;
-  };
+    let start = i
+    while (i < input.length && /[^\s()]/.test(input[i])) i++
+    const token = input.slice(start, i)
+
+    if (!isNaN(token)) {
+      return Number(token)
+    }
+
+    return Sym(token)
+  }
 
   const parseList = () => {
-    const list = [];
-    i++; // skip '('
+    const list = []
+    i++ // skip '('
     while (i < input.length) {
-      skipWhitespace();
-      if (i >= input.length) break;
+      skipWhitespace()
+      if (i >= input.length) break
+
       if (input[i] === ')') {
-        i++;
-        break;
+        i++
+        break
       } else if (input[i] === '(') {
-        list.push(parseList());
+        list.push(parseList())
       } else if (input[i] === '"') {
-        list.push(parseString());
+        list.push(parseString())
       } else {
-        list.push(parseAtomOrNumber());
+        list.push(parseAtomOrNumber())
       }
     }
-    return list;
-  };
+    return list
+  }
 
-  const result = [];
+  const result = []
   while (i < input.length) {
-    skipWhitespace();
-    if (i >= input.length) break;
+    skipWhitespace()
+    if (i >= input.length) break
+
     if (input[i] === '(') {
-      result.push(parseList());
+      result.push(parseList())
     } else if (input[i] === '"') {
-      result.push(parseString());
+      result.push(parseString())
     } else {
-      result.push(parseAtomOrNumber());
+      result.push(parseAtomOrNumber())
     }
   }
-  return result;
+
+  return result
 }
 
-/**
- * Convert s-expression arrays back to a string
- * Atoms ($...) are unquoted, strings are quoted
- * Escaped $$ → $
- */
-export function stringify(sexpr, indent = 0) {
-  const space = (n) => '  '.repeat(n);
+export function stringify(sexpr, indent) {
+  const pretty = typeof indent === 'number' && indent > 0
+  const space = (n) => pretty ? ' '.repeat(indent * n) : ''
 
-  const serializeNode = (node) => {
-    if (typeof node === 'string') {
-      if (node.startsWith('$$')) {
-        // escaped $, treat as literal string
-        return `"${node.slice(1).replace(/(["\\])/g, '\\$1')}"`;
-      } else if (node.startsWith('$')) {
-        // atom → unquoted
-        return node.slice(1);
-      } else {
-        // regular string
-        return `"${node.replace(/(["\\])/g, '\\$1')}"`;
-      }
-    } else {
-      // number
-      return String(node);
+  const serializeAtom = (node) => {
+    if (isSym(node)) {
+      return node.name
     }
-  };
+    if (typeof node === 'string') {
+      return `"${node.replace(/(["\\])/g, '\\$1')}"`
+    }
+    return String(node)
+  }
 
   const serialize = (node, level) => {
-    if (Array.isArray(node)) {
-      if (node.length === 0) return '()';
-      // inline small lists
-      const isSimple = node.every(
-        n => !Array.isArray(n)
-      );
-      if (isSimple) {
-        return '(' + node.map(serializeNode).join(' ') + ')';
-      }
-      const lines = node.map(n => serialize(n, level + 1));
-      return '(\n' + lines.map(l => space(level + 1) + l).join('\n') + '\n' + space(level) + ')';
-    } else {
-      return serializeNode(node);
+    // atom
+    if (!Array.isArray(node)) {
+      return serializeAtom(node)
     }
-  };
 
-  return sexpr.map(node => serialize(node, indent)).join('\n');
+    if (node.length === 0) return '()'
+
+    const head = node[0]
+    const rest = node.slice(1)
+
+    let out = '(' + serializeAtom(head)
+    let i = 0
+
+    // inline atoms after head
+    while (i < rest.length && !Array.isArray(rest[i])) {
+      out += ' ' + serializeAtom(rest[i])
+      i++
+    }
+
+    // no pretty-printing or everything fit inline
+    if (!pretty || i === rest.length) {
+      for (; i < rest.length; i++) {
+        out += ' ' + serialize(rest[i], level + 1)
+      }
+      return out + ')'
+    }
+
+    // pretty-print remaining forms
+    const lines = rest.slice(i).map(
+      n => space(level + 1) + serialize(n, level + 1)
+    )
+
+    return (
+      out + '\n' +
+      lines.join('\n') +
+      '\n' +
+      space(level) + ')'
+    )
+  }
+
+  return sexpr.map(node => serialize(node, 0)).join(pretty ? '\n' : ' ')
 }

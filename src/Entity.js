@@ -1,4 +1,5 @@
 import {Point} from "./cartesian-math.js";
+import {Sym} from "./sexpr.js";
 
 class EntityPin {
 	constructor(sexpr, entity) {
@@ -60,7 +61,7 @@ export default class Entity {
 		this.getType();
 
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && a[0]=="$pin")
+			if (Array.isArray(a) && Sym("pin").equals(a[0]))
 				this.pins.push(new EntityPin(a,this));
 	}
 
@@ -69,29 +70,35 @@ export default class Entity {
 	}
 
 	async load() {
+		if (this.getType()!="symbol")
+			return;
+
 		let id=this.getLibId();
 		if (!id)
-			return;
+			throw new Error("Unable to load symbol");
 
 		//console.log("id: "+id);
 		this.librarySymbol=await this.schematic.symbolLibrary.loadLibrarySymbol(this.getLibId())
+		if (!this.librarySymbol)
+			throw new Error("Unable to load symbol");
+
 	}
 
 	getReference() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && a[0]=="$property" && a[1]=="Reference")
+			if (Array.isArray(a) && Sym("property").equals(a[0]) && a[1]=="Reference")
 				return a[2];
 	}
 
 	getLibId() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && a[0]=="$lib_id")
+			if (Array.isArray(a) && Sym("lib_id").equals(a[0]))
 				return a[1];
 	}
 
 	getAt() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && a[0]=="$at")
+			if (Array.isArray(a) && Sym("at").equals(a[0]))
 				return a.slice(1).map(Number);
 	}
 
@@ -113,7 +120,7 @@ export default class Entity {
 	}
 
 	getType() {
-		let t=this.sexpr[0].slice(1);
+		let t=this.sexpr[0].name; //slice(1);
 
 		if (!["symbol","wire","label"].includes(t))
 			throw new Error("Unknown entity: "+t);

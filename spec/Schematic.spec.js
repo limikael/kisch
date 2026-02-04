@@ -6,6 +6,9 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
+		//console.log(schematic.getEntities().length);
+
+		expect(schematic.getEntities().length).toEqual(12);
 		//console.log(schematic);		
 		for (let entity of schematic.getEntities()) {
 			//console.log(entity.getReference());
@@ -16,6 +19,10 @@ describe("schematic",()=>{
 		let j2=schematic.getEntity("J2");
 
 		//console.log(j1.pin(1).isConnected(j2.pin(2)));
+		expect(j1.pin(1).isConnected(j2.pin(2))).toEqual(true);
+
+		//console.log(j1.pin(1).isConnected(j2.pin(1)));
+		expect(j1.pin(1).isConnected(j2.pin(1))).toEqual(false);
 
 		let p1=j1.pin(1).getPoint();
 		expect(p1).toEqual([ 81.28, 71.12 ]);
