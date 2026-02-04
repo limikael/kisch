@@ -1,4 +1,4 @@
-import {Sym, isSym} from "./sexpr.js";
+import {sym, isSym, symEq, symName} from "./sexp.js";
 
 export default class LibrarySymbol {
   constructor(sexpr, qualifiedName) {
@@ -14,9 +14,7 @@ export default class LibrarySymbol {
     if (!this._pins) {
       // 1. Find the first nested symbol
       const nestedSymbol = this.sexpr.find(
-//        (e) => Array.isArray(e) && e[0]?.atom === "symbol" && e !== this.sexpr[0]
-//        (e) => Array.isArray(e) && e[0]=="$symbol" && e !== this.sexpr[0]
-        (e) => Array.isArray(e) && Sym("symbol").equals(e[0]) && e !== this.sexpr[0]
+        (e) => Array.isArray(e) && symEq(e[0],"symbol") && e !== this.sexpr[0]
       );
 
       if (!nestedSymbol) {
@@ -24,9 +22,7 @@ export default class LibrarySymbol {
       } else {
         // 2. Collect all (pin ...) inside nested symbol
         this._pins = nestedSymbol
-//          .filter((e) => Array.isArray(e) && e[0]?.atom === "pin")
-//          .filter((e) => Array.isArray(e) && e[0]=="$pin")
-          .filter((e) => Array.isArray(e) && Sym("pin").equals(e[0]))
+          .filter((e) => Array.isArray(e) && symEq(e[0],"pin"))
           .map((pinSexpr) => new LibrarySymbolPin(pinSexpr));
       }
     }
@@ -62,7 +58,7 @@ export class LibrarySymbolPin {
     for (const e of sexpr.slice(3)) {
       if (!Array.isArray(e) || !isSym(e[0])) continue;
 
-      switch (e[0].name) {
+      switch (symName(e[0])) {
         case "at":
           this.at = e.slice(1).map(Number); // [x, y, rotation]
           break;

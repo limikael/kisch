@@ -1,46 +1,43 @@
 import util from 'node:util';
 
-// sexpr.js
-// ES module
+export function sexpCallName(sexp) {
+  if (!Array.isArray(sexp))
+    return;
 
-// --------------------
-// Symbol representation
-// --------------------
+  return symName(sexp[0]);
+}
 
-export function Sym(name) {
-  return {
-    type: 'sym',
-    name,
-    equals(other) {
-      return isSym(other) && other.name === name
-    },
-    toString() {
-      return name
-    },
-    toJSON() {
-      throw new Error("Can't use Sym in JSON");
-    },
-    [util.inspect.custom]() {
-      return `Sym("${name}")`
-    }
+export function sym(name) {
+  return { $sym: String(name) }
+}
+
+export function isSym(v) {
+  return (
+    v !== null &&
+    typeof v === 'object' &&
+    typeof v.$sym === 'string'
+  )
+}
+
+export function symName(v) {
+  return isSym(v) ? v.$sym : null
+}
+
+export function symEq(v, other) {
+  if (!isSym(v)) return false
+
+  if (isSym(other)) {
+    return v.$sym === other.$sym
   }
+
+  if (typeof other === 'string') {
+    return v.$sym === other
+  }
+
+  return false
 }
 
-export function isSym(x) {
-  return !!x && typeof x === 'object' && x.type === 'sym'
-}
-
-// --------------------
-// Parser
-// --------------------
-
-/**
- * Parse a string into s-expressions.
- * Symbols become Sym(name)
- * Strings become JS strings
- * Numbers become JS numbers
- */
-export function parse(input) {
+export function sexpParse(input) {
   let i = 0
 
   const skipWhitespace = () => {
@@ -74,7 +71,7 @@ export function parse(input) {
       return Number(token)
     }
 
-    return Sym(token)
+    return sym(token)
   }
 
   const parseList = () => {
@@ -115,13 +112,13 @@ export function parse(input) {
   return result
 }
 
-export function stringify(sexpr, indent) {
+export function sexpStringify(sexpr, indent) {
   const pretty = typeof indent === 'number' && indent > 0
   const space = (n) => pretty ? ' '.repeat(indent * n) : ''
 
   const serializeAtom = (node) => {
     if (isSym(node)) {
-      return node.name
+      return symName(node)
     }
     if (typeof node === 'string') {
       return `"${node.replace(/(["\\])/g, '\\$1')}"`

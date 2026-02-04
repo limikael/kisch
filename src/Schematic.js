@@ -1,10 +1,9 @@
 import SymbolLibrary from "./SymbolLibrary.js";
 import fs, {promises as fsp} from "fs";
-import {parse as sexprParse, stringify as sexprStringify} from "./sexpr.js";
 import Entity from "./Entity.js";
 import {Point, pointKey, Rect} from "./cartesian-math.js";
 import {findGridPath} from "../src/manhattan-router.js";
-import {isSym, Sym} from "./sexpr.js";
+import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "./sexp.js";
 
 export default class Schematic {
 	constructor(fn, options) {
@@ -14,13 +13,13 @@ export default class Schematic {
 	}
 
 	async load() {
-		this.sexpr=sexprParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
+		this.sexpr=sexpParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
 		this.entities=[];
 
 		for (let o of this.sexpr) {
 			if (Array.isArray(o) && 
 					isSym(o[0]) &&
-					["wire","label","symbol"].includes(o[0].name)) {
+					["wire","label","symbol"].includes(symName(o[0]))) {
 				let e=new Entity(o,this);
 				await e.load();
 				this.entities.push(e);
@@ -31,7 +30,7 @@ export default class Schematic {
 	getUuid() {
 		for (let o of this.sexpr) {
 			//console.log(o);
-			if (Array.isArray(o) && Sym("uuid").equals(o[0]))
+			if (Array.isArray(o) && symName(o[0])=="uuid")
 				return o[1];
 		}
 	}
@@ -62,7 +61,7 @@ export default class Schematic {
 	}
 
 	async save() {
-		let content=sexprStringify([this.getSexpr()]);
+		let content=sexpStringify([this.getSexpr()],2);
 		await fsp.writeFile(this.schematicFileName,content);
 	}
 
@@ -184,10 +183,10 @@ export default class Schematic {
 
 		for (let i=0; i<points.length-1; i++) {
 			let p1=points[i], p2=points[i+1];
-			let expr=[Sym("wire"),
-				[Sym("pts"), [Sym("xy"),p1[0],p1[1]], [Sym("xy"),p2[0],p2[1]]],
-				[Sym("stroke"), [Sym("width"),0], [Sym("type"), Sym("default")]],
-				[Sym("uuid"),crypto.randomUUID()]
+			let expr=[sym("wire"),
+				[sym("pts"), [sym("xy"),p1[0],p1[1]], [sym("xy"),p2[0],p2[1]]],
+				[sym("stroke"), [sym("width"),0], [sym("type"), sym("default")]],
+				[sym("uuid"),crypto.randomUUID()]
 			];
 
 			let e=new Entity(expr,this);
@@ -196,13 +195,13 @@ export default class Schematic {
 	}
 
 	addLabel(point, label) {
-		let expr=[Sym("label"),label,
-			[Sym("at"),point[0],point[1],180],
-			[Sym("effects"),
-				[Sym("font"),[Sym("size"),1.27,1.27]],
-				[Sym("justify"),Sym("right"),Sym("bottom")]
+		let expr=[sym("label"),label,
+			[sym("at"),point[0],point[1],180],
+			[sym("effects"),
+				[sym("font"),[sym("size"),1.27,1.27]],
+				[sym("justify"),sym("right"),sym("bottom")]
 			],
-			[Sym("uuid"),crypto.randomUUID()]
+			[sym("uuid"),crypto.randomUUID()]
 		]
 
 		let e=new Entity(expr,this);
@@ -210,15 +209,17 @@ export default class Schematic {
 	}
 
 	getLibSymbolsExpr() {
+		//return sexpFirst(this.sexpr,x=>sexpCallName(x)=="lib_symbols")
+
 		for (let expr of this.sexpr)
-			if (Array.isArray(expr) && Sym("lib_symbols").equals(expr[0]))
+			if (sexpCallName(expr)=="lib_symbols")
 				return expr;
 	}
 
 	async ensureLibSymbol(symbol) {
 		let libSymbolsExpr=this.getLibSymbolsExpr();
 		for (let e of libSymbolsExpr)
-			if (Array.isArray(e) && Sym("symbol").equals(e[0]) && e[1]==symbol)
+			if (sexpCallName(e)=="symbol" && e[1]==symbol)
 				return;
 
 		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
@@ -230,34 +231,34 @@ export default class Schematic {
 		let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
 		let point=[78.74,78.74];
 
-		let expr=[Sym("symbol"),
-			[Sym("lib_id"),symbol],
-			[Sym("at"),point[0],point[1],0],
-			[Sym("unit"),1],
-			[Sym("exclude_from_sim"),Sym("no")],
-			[Sym("in_bom"),Sym("yes")],
-			[Sym("on_board"),Sym("yes")],
-			[Sym("dnp"),Sym("no")],
-			[Sym("fields_autoplaced"),Sym("yes")],
-			[Sym("uuid"),crypto.randomUUID()]
+		let expr=[sym("symbol"),
+			[sym("lib_id"),symbol],
+			[sym("at"),point[0],point[1],0],
+			[sym("unit"),1],
+			[sym("exclude_from_sim"),sym("no")],
+			[sym("in_bom"),sym("yes")],
+			[sym("on_board"),sym("yes")],
+			[sym("dnp"),sym("no")],
+			[sym("fields_autoplaced"),sym("yes")],
+			[sym("uuid"),crypto.randomUUID()]
 		];
 
-		expr.push([Sym("property"),"Reference",reference,
-			[Sym("at"),point[0],point[1],0],
-			[Sym("effects"),
-				[Sym("font"),[Sym("size"),1.27,1.27]],
-				[Sym("justify"),Sym("left")],
+		expr.push([sym("property"),"Reference",reference,
+			[sym("at"),point[0],point[1],0],
+			[sym("effects"),
+				[sym("font"),[sym("size"),1.27,1.27]],
+				[sym("justify"),sym("left")],
 			]
 		]);
 
 		for (let i=1; i<=librarySymbol.pins.length; i++)
-			expr.push([Sym("pin"),String(i),[Sym("uuid"),crypto.randomUUID()]]);
+			expr.push([sym("pin"),String(i),[sym("uuid"),crypto.randomUUID()]]);
 
-		expr.push([Sym("instances"),
-			[Sym("project"),"",
-				[Sym("path"),"/"+this.getUuid(),
-					[Sym("reference"),reference],
-					[Sym("unit"),1]
+		expr.push([sym("instances"),
+			[sym("project"),"",
+				[sym("path"),"/"+this.getUuid(),
+					[sym("reference"),reference],
+					[sym("unit"),1]
 				]
 			]
 		]);

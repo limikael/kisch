@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import LibrarySymbol from "./LibrarySymbol.js";
-import {parse as sexprParse, Sym, isSym} from "../src/sexpr.js";
+import {sexpParse, sym, isSym, symEq} from "../src/sexp.js";
 
 /**
  * SymbolLibrary represents a directory of .kicad_sym files.
@@ -74,13 +74,13 @@ export default class SymbolLibrary {
 
         const fullPath = path.join(this.dirPath, fileName);
         const raw = await fs.readFile(fullPath, "utf8");
-        const sexprs = sexprParse(raw)[0]; // Your sexprParse
+        const sexprs = sexpParse(raw)[0]; // Your sexprParse
 
         // Filter only top-level (symbol ...) forms
         const symbols = sexprs.filter(
 //            (e) => Array.isArray(e) && e[0]?.atom === "symbol"
 //            (e) => Array.isArray(e) && e[0]=="$symbol"
-            (e) => Array.isArray(e) && Sym("symbol").equals(e[0]) //=="$symbol"
+            (e) => Array.isArray(e) && symEq(e[0],"symbol")
         );
 
         this.cache.set(libraryName, symbols);

@@ -1,5 +1,5 @@
 import {Point} from "./cartesian-math.js";
-import {Sym} from "./sexpr.js";
+import {sym, symName, sexpCallName} from "./sexp.js";
 
 class EntityPin {
 	constructor(sexpr, entity) {
@@ -61,7 +61,7 @@ export default class Entity {
 		this.getType();
 
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && Sym("pin").equals(a[0]))
+			if (sexpCallName(a)=="pin")
 				this.pins.push(new EntityPin(a,this));
 	}
 
@@ -86,19 +86,19 @@ export default class Entity {
 
 	getReference() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && Sym("property").equals(a[0]) && a[1]=="Reference")
+			if (sexpCallName(a)=="property" && a[1]=="Reference")
 				return a[2];
 	}
 
 	getLibId() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && Sym("lib_id").equals(a[0]))
+			if (sexpCallName(a)=="lib_id")
 				return a[1];
 	}
 
 	getAt() {
 		for (let a of this.sexpr)
-			if (Array.isArray(a) && Sym("at").equals(a[0]))
+			if (sexpCallName(a)=="at")
 				return a.slice(1).map(Number);
 	}
 
@@ -120,7 +120,7 @@ export default class Entity {
 	}
 
 	getType() {
-		let t=this.sexpr[0].name; //slice(1);
+		let t=symName(this.sexpr[0]);
 
 		if (!["symbol","wire","label"].includes(t))
 			throw new Error("Unknown entity: "+t);
