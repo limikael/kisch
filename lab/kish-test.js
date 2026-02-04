@@ -16,7 +16,7 @@ schematic.entity("J1").pin(1).connect(schematic.entity("J3").pin(2));
 schematic.entity("J3").pin(1).connect("GND");
 
 await schematic.addSymbol("J4",{
-	symbol: "Connector_Generic:Conn_01x04"
+	symbol: "Connector_Generic:Conn_01x08"
 });
 
 schematic.entity("J4").pin(1).connect("GND");

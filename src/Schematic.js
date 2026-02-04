@@ -17,46 +17,23 @@ export default class Schematic {
 		this.entities=[];
 
 		for (let o of this.sexpr) {
-			if (Array.isArray(o) && 
-					isSym(o[0]) &&
-					["wire","label","symbol"].includes(symName(o[0]))) {
+			if (["wire","label","symbol"].includes(sexpCallName(o))) {
 				let e=new Entity(o,this);
 				await e.load();
 				this.entities.push(e);
 			}
+
+			if (sexpCallName(o)=="uuid")
+				this.uuid=o[1];
 		}
-	}
 
-	getUuid() {
-		for (let o of this.sexpr) {
-			//console.log(o);
-			if (Array.isArray(o) && symName(o[0])=="uuid")
-				return o[1];
-		}
-	}
-
-	getStrippedSexpr() {
-		let sexpr=structuredClone(this.sexpr);
-
-		sexpr=sexpr.filter(el=>{
-			if (!Array.isArray(el))
-				return true;
-
-			/*if (["$wire","$label","$symbol"].includes(el[0]))
-				return false;*/
-
-			if (isSym(el[0]) && ["wire","label","symbol"].includes(el[0].name))
-				return false;
-
-			return true;
-		});
-
-		return sexpr;
+		this.sexpr=this.sexpr.filter(o=>!["wire","label","symbol","uuid"].includes(sexpCallName(o)));
 	}
 
 	getSexpr() {
-		let sexpr=this.getStrippedSexpr();
+		let sexpr=structuredClone(this.sexpr);
 		sexpr.push(...this.entities.map(e=>e.getSexpr()));
+		sexpr.push([sym("uuid"),this.uuid]);
 		return sexpr;
 	}
 
@@ -256,7 +233,7 @@ export default class Schematic {
 
 		expr.push([sym("instances"),
 			[sym("project"),"",
-				[sym("path"),"/"+this.getUuid(),
+				[sym("path"),"/"+this.uuid,
 					[sym("reference"),reference],
 					[sym("unit"),1]
 				]
