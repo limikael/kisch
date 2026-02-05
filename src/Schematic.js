@@ -201,6 +201,7 @@ export default class Schematic {
 
 		let e=new Entity(expr,this);
 		this.entities.push(e);
+		return e;
 	}
 
 	getLibSymbolsExp() {
@@ -232,6 +233,13 @@ export default class Schematic {
 		let entity=this.entities.find(e=>e.getType()=="symbol" && e.getReference()==ref);
 		if (!entity)
 			entity=this.addSymbol(ref,options);
+
+		if (entity.getLibId()!=options.symbol)
+			throw new Error("Symbol declaration mismatch.");
+
+		entity.declared=true;
+
+		return entity;
 	}
 
 	addSymbol(reference, {symbol, at}) {
@@ -293,6 +301,22 @@ export default class Schematic {
 		this.entities.push(e);
 
 		return e;
+	}
+
+	markConnectionDeclared(from, to) {
+		let wires=this.getConnectionPath(from,to);
+		for (let wire of wires) {
+			if (wire.getType()!="wire")
+				throw new Error("Sanity check... Wire is not a wire...");
+
+			wire.declared=true;
+		}
+	}
+
+	removeUndeclared() {
+		this.entities=this.entities.filter(entity=>{
+			return entity.declared;
+		});
 	}
 }
 

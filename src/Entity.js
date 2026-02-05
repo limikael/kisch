@@ -40,15 +40,32 @@ class EntityPin {
 	}
 
 	connect(p) {
-		if (this.isConnected(p))
+		if (this.isConnected(p)) {
+			if (typeof p=="string") {
+				for (let e of this.entity.schematic.getLabelEntities(p)) {
+					let p=e.getConnectionPoints()[0];
+					if (this.entity.schematic.arePointsConnected(this.getPoint(),p)) {
+						e.declared=true;
+						this.entity.schematic.markConnectionDeclared(this.getPoint(),p);
+					}
+				}
+			}
+
+			else {
+				this.entity.schematic.markConnectionDeclared(this.getPoint(),p.getPoint());
+			}
+
 			return;
+		}
 
 		if (typeof p=="string") {
-			this.entity.schematic.addLabel(this.getPoint(),p);
+			let l=this.entity.schematic.addLabel(this.getPoint(),p);
+			l.declared=true;
 		}
 
 		else {
 			this.entity.schematic.addConnectionWire(this.getPoint(),p.getPoint());
+			this.entity.schematic.markConnectionDeclared(this.getPoint(),p.getPoint());
 		}
 	}
 }
@@ -59,7 +76,9 @@ export default class Entity {
 		this.sexpr=sexpr;
 		this.pins=[];
 
-		this.getType();
+		this.type=symName(this.sexpr[0]);
+		if (!["symbol","wire","label"].includes(this.type))
+			throw new Error("Unknown entity: "+this.type);
 
 		for (let a of this.sexpr)
 			if (sexpCallName(a)=="pin")
@@ -146,12 +165,13 @@ export default class Entity {
 	}
 
 	getType() {
-		let t=symName(this.sexpr[0]);
+		return this.type;
+		/*let t=symName(this.sexpr[0]);
 
 		if (!["symbol","wire","label"].includes(t))
 			throw new Error("Unknown entity: "+t);
 
-		return t;
+		return t;*/
 	}
 
 	getConnectionPoints() {
