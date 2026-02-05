@@ -2,6 +2,6 @@ todo:
 
 x net connections
 x declare
-- cli
+x cli
 - footprint
-- removeUndeclared
+x removeUndeclared
