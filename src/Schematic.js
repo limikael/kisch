@@ -237,6 +237,7 @@ export default class Schematic {
 		if (entity.getLibId()!=options.symbol)
 			throw new Error("Symbol declaration mismatch.");
 
+		entity.setFootprint(options.footprint);
 		entity.declared=true;
 
 		return entity;

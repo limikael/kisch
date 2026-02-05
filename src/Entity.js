@@ -125,6 +125,39 @@ export default class Entity {
 		return el[2];
 	}
 
+	getFootprint() {
+		if (this.getType()!="symbol")
+			throw new Error("Only symbols have footprints");
+
+		let el=this.sexpr.find(a=>sexpCallName(a)=="property" && a[1]=="Footprint");
+		if (!el)
+			return "";
+
+		return el[2];
+	}
+
+	setFootprint(footprint) {
+		if (this.getType()!="symbol")
+			throw new Error("Only symbols have footprints");
+
+		if (!footprint)
+			footprint="";
+
+		let el=this.sexpr.find(a=>sexpCallName(a)=="property" && a[1]=="Footprint");
+		if (!el) {
+			let exp=[sym("property"),"Footprint","",
+				[sym("effects"),
+					[sym("hide"),sym("yes")]
+				]
+			];
+
+			this.sexpr.push(exp);
+			el=exp;
+		}
+
+		el[2]=footprint;
+	}
+
 	getLibId() {
 		return this.sexpr.find(x=>sexpCallName(x)=="lib_id")[1];
 	}

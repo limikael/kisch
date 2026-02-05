@@ -466,7 +466,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "hello"
 			(at 107.95 63.5 0)
 			(effects
 				(font
