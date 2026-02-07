@@ -235,7 +235,7 @@ export default class Schematic {
 			entity=this.addSymbol(ref,options);
 
 		if (entity.getLibId()!=options.symbol)
-			throw new Error("Symbol declaration mismatch.");
+			throw new Error("Symbol declaration mismatch, code: "+options.symbol+" existing in schema: "+entity.getLibId()+" ref: "+ref);
 
 		entity.setFootprint(options.footprint);
 		entity.declared=true;

@@ -13,19 +13,29 @@ export default class LibrarySymbol {
      */
     get pins() {
         if (!this._pins) {
+            this._pins = [];
+
             // 1. Find the first nested symbol
-            const nestedSymbol = this.sexpr.find(
+            const nestedSymbols = this.sexpr.filter(
                 (e) => Array.isArray(e) && symEq(e[0],"symbol") && e !== this.sexpr[0]
             );
 
-            if (!nestedSymbol) {
+            for (let nestedSymbol of nestedSymbols) {
+                this._pins.push(...nestedSymbol
+                    .filter((e) => Array.isArray(e) && symEq(e[0],"pin"))
+                    .map((pinSexpr) => new LibrarySymbolPin(pinSexpr))
+                );
+
+            }
+
+            /*if (!nestedSymbol) {
                 this._pins = [];
             } else {
                 // 2. Collect all (pin ...) inside nested symbol
                 this._pins = nestedSymbol
                     .filter((e) => Array.isArray(e) && symEq(e[0],"pin"))
                     .map((pinSexpr) => new LibrarySymbolPin(pinSexpr));
-            }
+            }*/
         }
         return this._pins;
     }
