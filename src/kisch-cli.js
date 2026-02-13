@@ -39,7 +39,7 @@ program
     .argument("<output.kicad_sch>", "Path to the generated schematic file")
 
     // Core options
-    //.option("-i, --input <input.kicad_sch>", "Input schematic, defaults to output file if it exists.")
+    .option("-i, --input <input.kicad_sch>", "Input schematic, defaults to output file if it exists.")
     .option("-L, --symbol-dir <path>","Where to find KiCad symbols.")
     .option("-s, --script <script.js>", "Transformation script JavaScript module.")
     .option("-e, --emit", "Emit script based on schematic.")
@@ -81,8 +81,9 @@ try {
     if (!inputFileName)
         inputFileName=options.schematic;
 
+    //console.log("input: "+inputFileName);
     if (fs.existsSync(inputFileName))
-        schematic=await loadSchematic(options.schematic,{
+        schematic=await loadSchematic(inputFileName,{
             symbolLibraryPath: options.symbolDir
         });
 
@@ -97,12 +98,15 @@ try {
     }
 
     else {
-        global.schematic=schematic;
-        let mod=await import(path.resolve(options.script));
-        if (typeof mod.default=="function")
-            await mod.default(schematic);
+        if (options.script) {
+            global.schematic=schematic;
+            let mod=await import(path.resolve(options.script));
+            if (typeof mod.default=="function")
+                await mod.default(schematic);
 
-        schematic.removeUndeclared();
+            schematic.removeUndeclared();
+        }
+
         await schematic.save(options.schematic);
     }
 }

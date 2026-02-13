@@ -58,4 +58,23 @@ describe("kisch-cli",()=>{
 
 		expect(schematic.getSymbolEntities().length).toEqual(3);
 	});
+
+	it("can work with separate input",async ()=>{
+		await fsp.rm("lab/kitest",{force: true, recursive: true});
+		await fsp.cp("lab/kitest-org","lab/kitest",{recursive: true});
+		await fsp.rm("lab/kitest/kitest.kicad_sch",{recursive: true});
+
+		await runCommand("src/kisch-cli.js",[
+			"lab/kitest/kitest.kicad_sch",
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"--input","lab/kitest-org/kitest.kicad_sch",
+			"--quiet"
+		]);
+
+		let schematic=await loadSchematic("lab/kitest/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		expect(schematic.getSymbolEntities().length).toEqual(3);
+	});
 });
