@@ -16,6 +16,24 @@ describe("kisch-cli",()=>{
 		});
 
 		schematic.sym("J5");
+		expect(schematic.getSymbolEntities().length).toEqual(2);
+	});
+
+	it("can do defines",async ()=>{
+		await fsp.copyFile("spec/kitest.kicad_sch","spec/kitest-work.kicad_sch");
+		await runCommand("src/kisch-cli.js",[
+			"spec/kitest-work.kicad_sch",
+			"--script","spec/kitest-basic.js",
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"-Dtest=123",
+			"-Dtest2=456",
+		]);
+
+		let schematic=await loadSchematic("spec/kitest-work.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		expect(schematic.getSymbolEntities().length).toEqual(3);
 	});
 
 	it("can emit",async ()=>{

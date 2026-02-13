@@ -46,6 +46,14 @@ program
     .option("-q, --quiet", "No output, except for errors.")
     //.option("-c, --check", "Validate and report changes without writing output")
     //.option("-v, --verbose", "Print detailed execution info")
+    .option(
+        "-D, --define <key=value>", 
+        "Define variable for the script.",
+        (value, previous = []) => {
+            previous.push(value);
+            return previous;
+        }
+    )
 
     // Custom help formatting
     .addHelpText("after",HELP_TEXT);
@@ -59,6 +67,9 @@ let options={
     ...program.opts(),
     schematic: program.args[0],
 }
+
+if (!options.define)
+    options.define=[];
 
 if (!options.symbolDir)
     options.symbolDir=
@@ -100,9 +111,13 @@ try {
     else {
         if (options.script) {
             global.schematic=schematic;
+            let defines=Object.fromEntries(options.define.map(e=>
+                ([e.slice(0,e.indexOf("=")),e.slice(e.indexOf("=")+1)])
+            ));
+
             let mod=await import(path.resolve(options.script));
             if (typeof mod.default=="function")
-                await mod.default(schematic);
+                await mod.default(schematic,defines);
 
             schematic.removeUndeclared();
         }
