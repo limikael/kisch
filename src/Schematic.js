@@ -5,6 +5,7 @@ import {Point, pointKey, Rect} from "./cartesian-math.js";
 import {findGridPath} from "../src/manhattan-router.js";
 import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "./sexp.js";
 import {placeRect} from "./place-rect.js";
+import {arrayUnique} from "./js-util.js";
 
 export default class Schematic {
 	constructor(fn, options) {
@@ -14,6 +15,7 @@ export default class Schematic {
 	}
 
 	async load() {
+		await this.symbolLibrary.loadIndex();
 		this.sexp=sexpParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
 		this.entities=[];
 
@@ -73,6 +75,16 @@ export default class Schematic {
 				entities.push(e);
 
 		return entities;
+	}
+
+	getNets() {
+		let nets=this.getEntities()
+			.filter(e=>e.getType()=="label")
+			.map(e=>e.getLabel());
+
+		nets=arrayUnique(nets);
+
+		return nets;
 	}
 
 	getEntitiesByConnectionPoint(connectonPoint) {
@@ -248,7 +260,9 @@ export default class Schematic {
 		if (entity)
 			throw new Error("Reference already exists: "+reference);
 
-		let librarySymbol=this.symbolLibrary.getLibrarySymbol(symbol);
+		//let librarySymbol=this.symbolLibrary.getLibrarySymbol(symbol);
+		let librarySymbol=this.symbolLibrary.loadLibrarySymbolSync(symbol);
+
 		//let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
 		let rects=this.getSymbolEntities().map(e=>e.getBoundingRect().pad(2.54*4));
 
@@ -318,6 +332,40 @@ export default class Schematic {
 		this.entities=this.entities.filter(entity=>{
 			return entity.declared;
 		});
+	}
+
+	getSource() {
+		let src="";
+		src+=`export default async function(sch) {\n`;
+		for (let e of this.getSymbolEntities()) {
+			src+=`    let ${e.getReference()}=sch.declare("${e.getReference()}",{\n`;
+			src+=`        "symbol": "${e.getLibId()}",\n`
+			src+=`        "footprint": "${e.getFootprint()}",\n`
+			src+=`    });\n\n`;
+		}
+
+		let allConnectionPoints=this.getConnectionPoints();
+		for (let e of this.getSymbolEntities()) {
+			for (let pin of e.pins) {
+				for (let c of pin.getConnections()) {
+					if (typeof c=="string") {
+						src+=`    ${e.getReference()}.pin(${pin.getNum()}).connect("${c}");\n`;
+					}
+
+					else {
+						if (e.getReference()<c.entity.getReference()) {
+							src+=`    ${e.getReference()}.pin(${pin.getNum()}).connect(`;
+							src+=`${c.entity.getReference()}.pin(${c.getNum()})`;
+							src+=`);\n`;
+						}
+					}
+				}
+			}
+		}
+
+		src+=`}\n`;
+
+		return src;
 	}
 }
 

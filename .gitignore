@@ -1,3 +1,5 @@
 node_modules
 pnpm-lock.yaml
 lab/kitest
+spec/kitest-work.kicad_sch
+spec/kitest-emitted.js

@@ -14,4 +14,19 @@ describe("SymbolLibrary",()=>{
 
 		//console.log(JSON.stringify(sym.pins[0].sexpr,null,2));
 	});
+
+	it("can load a library symbol sync",async ()=>{
+		let lib=new SymbolLibrary("/home/micke/Repo.ext/kicad-symbols");
+		await lib.loadIndex();
+		let sym=lib.loadLibrarySymbolSync("Connector_Generic:Conn_01x04");
+
+		//console.log(sym);
+		//console.log(sym.pins);
+
+		expect(sym.pins.length).toEqual(4);
+		//console.log(sym.getPin(1));
+		expect(sym.pins[1].at).toEqual([ -5.08, 0, 0 ]);
+
+		//console.log(JSON.stringify(sym.pins[0].sexpr,null,2));
+	});
 });

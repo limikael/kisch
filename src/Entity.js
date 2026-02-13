@@ -68,6 +68,26 @@ class EntityPin {
 			this.entity.schematic.markConnectionDeclared(this.getPoint(),p.getPoint());
 		}
 	}
+
+	getConnections() {
+		let connections=[];
+
+		for (let net of this.entity.schematic.getNets()) {
+			if (this.isConnected(net))
+				connections.push(net);
+		}
+
+		for (let e of this.entity.schematic.getSymbolEntities()) {
+			if (e==this.entity)
+				continue;
+
+			for (let p of e.pins)
+				if (this.isConnected(p))
+					connections.push(p);
+		}
+
+		return connections;
+	}
 }
 
 export default class Entity {

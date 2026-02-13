@@ -98,9 +98,9 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		await schematic.use(
+		/*await schematic.use(
 			"Connector_Generic:Conn_01x08"
-		);
+		);*/
 
 		schematic.declare("J4",{
 			symbol: "Connector_Generic:Conn_01x08"
@@ -111,5 +111,17 @@ describe("schematic",()=>{
 
 		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(3))).toEqual(true);
 		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(2))).toEqual(false);
+	});
+
+	it("can generate source",async ()=>{
+		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		let source=schematic.getSource();
+		//console.log(source);
+
+		expect(source).toContain('J1.pin(2).connect("GND")');
+		expect(source).toContain('let J1=sch.declare("J1",{');
 	});
 });
