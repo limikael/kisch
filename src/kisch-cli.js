@@ -20,12 +20,12 @@ Examples:
 
   Generate script for later use:
     $ kisch fresh.sch --script x.js --emit
+
+  Transform from separate file:
+    $ kisch out.sch --input template.sch --script x.js
 `;
 
-/*  Transform from separate file:
-    $ kisch out.sch --input template.sch --script x.js
-
-  Check what would change (dry-run):
+/*  Check what would change (dry-run):
     $ kisch board.sch --script tidy.js --check*/
 
 program
