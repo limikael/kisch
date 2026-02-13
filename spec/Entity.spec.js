@@ -1,9 +1,9 @@
 import Entity from "../src/Entity.js";
-import {openSchematic} from "../src/Schematic.js";
+import {loadSchematic} from "../src/Schematic.js";
 
 describe("Entity",()=>{
 	it("can get and set existing footprint",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -17,7 +17,7 @@ describe("Entity",()=>{
 	});
 
 	it("can get and set footprints for new entities",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 

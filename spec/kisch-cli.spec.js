@@ -1,6 +1,6 @@
 import fs, {promises as fsp} from "fs";
 import {runCommand} from "../src/node-util.js";
-import {openSchematic} from "../src/Schematic.js";
+import {loadSchematic} from "../src/Schematic.js";
 
 describe("kisch-cli",()=>{
 	it("works",async ()=>{
@@ -11,7 +11,7 @@ describe("kisch-cli",()=>{
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols"
 		]);
 
-		let schematic=await openSchematic("spec/kitest-work.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest-work.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -30,5 +30,32 @@ describe("kisch-cli",()=>{
 		]);
 
 		expect(fs.existsSync("spec/kitest-emitted.js")).toEqual(true);
+	});
+
+	it("can work from scratch",async ()=>{
+		await fsp.rm("lab/kitest",{force: true, recursive: true});
+		await fsp.cp("lab/kitest-org","lab/kitest",{recursive: true});
+		await fsp.rm("lab/kitest/kitest.kicad_sch",{recursive: true});
+
+		await runCommand("src/kisch-cli.js",[
+			"lab/kitest-org/kitest.kicad_sch",
+			"--script","spec/kitest-emitted.js",
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"--emit",
+			"--quiet"
+		]);
+
+		await runCommand("src/kisch-cli.js",[
+			"lab/kitest/kitest.kicad_sch",
+			"--script","spec/kitest-emitted.js",
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"--quiet"
+		]);
+
+		let schematic=await loadSchematic("lab/kitest/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		expect(schematic.getSymbolEntities().length).toEqual(3);
 	});
 });

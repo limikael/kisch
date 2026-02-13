@@ -1,8 +1,8 @@
-import {openSchematic} from "../src/Schematic.js";
+import {loadSchematic} from "../src/Schematic.js";
 
 describe("schematic",()=>{
 	it("can open a schematic",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -46,7 +46,7 @@ describe("schematic",()=>{
 	});
 
 	it("can add a connection",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -63,7 +63,7 @@ describe("schematic",()=>{
 	});
 
 	it("can handle net labels",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -85,7 +85,7 @@ describe("schematic",()=>{
 	});
 
 	it("can get rectangles",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -94,7 +94,7 @@ describe("schematic",()=>{
 	});
 
 	it("can declare symbols",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -114,7 +114,7 @@ describe("schematic",()=>{
 	});
 
 	it("can generate source",async ()=>{
-		let schematic=await openSchematic("spec/kitest.kicad_sch",{
+		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 

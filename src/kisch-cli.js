@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import {program} from "commander";
-import Schematic from "./Schematic.js";
+import Schematic, {loadSchematic, createSchematic} from "./Schematic.js";
 import path from "node:path";
 import pkg from "../package.json" with { type: "json" };
 import {DeclaredError} from "./js-util.js";
@@ -76,11 +76,20 @@ try {
 
     //console.log(options);
 
-    let schematic=new Schematic(options.schematic,{
-        symbolLibraryPath: options.symbolDir
-    });
+    let schematic;
+    let inputFileName=options.input;
+    if (!inputFileName)
+        inputFileName=options.schematic;
 
-    await schematic.load();
+    if (fs.existsSync(inputFileName))
+        schematic=await loadSchematic(options.schematic,{
+            symbolLibraryPath: options.symbolDir
+        });
+
+    else 
+        schematic=await createSchematic({
+            symbolLibraryPath: options.symbolDir
+        });
 
     if (options.emit) {
         await fsp.writeFile(options.script,schematic.getSource());
@@ -94,7 +103,7 @@ try {
             await mod.default(schematic);
 
         schematic.removeUndeclared();
-        await schematic.save();
+        await schematic.save(options.schematic);
     }
 }
 

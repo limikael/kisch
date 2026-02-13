@@ -8,15 +8,33 @@ import {placeRect} from "./place-rect.js";
 import {arrayUnique} from "./js-util.js";
 
 export default class Schematic {
-	constructor(fn, options) {
-		this.schematicFileName=fn;
+	constructor(options) {
+		if (typeof options=="string")
+			throw new Error("just pass options!!!");
+
 		this.symbolLibraryPath=options.symbolLibraryPath;
 		this.symbolLibrary=new SymbolLibrary(this.symbolLibraryPath);
 	}
 
-	async load() {
+	async init() {
 		await this.symbolLibrary.loadIndex();
-		this.sexp=sexpParse(await fsp.readFile(this.schematicFileName,"utf8"))[0];
+		this.entities=[];
+		this.uuid=crypto.randomUUID();
+
+		this.sexp=[sym("kicad_sch"),
+			[sym("version"),sym("20250114")],
+			[sym("generator"),"eeschema"],
+			[sym("generator_version"),"9.0"],
+			[sym("paper"),"A4"],
+			[sym("lib_symbols")]
+		];
+	}
+
+	async load(fn) {
+		await this.init();
+
+		//this.schematicFileName=fn;
+		this.sexp=sexpParse(await fsp.readFile(fn,"utf8"))[0];
 		this.entities=[];
 
 		for (let o of this.sexp) {
@@ -40,9 +58,9 @@ export default class Schematic {
 		return sexp;
 	}
 
-	async save() {
+	async save(fn) {
 		let content=sexpStringify([this.getSexp()],2);
-		await fsp.writeFile(this.schematicFileName,content);
+		await fsp.writeFile(fn,content);
 	}
 
 	getEntities() {
@@ -235,6 +253,17 @@ export default class Schematic {
 		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
 	}
 
+	ensureLibSymbolSync(symbol) {
+		let libSymbolsExpr=this.getLibSymbolsExp();
+		for (let e of libSymbolsExpr)
+			if (sexpCallName(e)=="symbol" && e[1]==symbol)
+				return;
+
+		let librarySymbol=this.symbolLibrary.loadLibrarySymbolSync(symbol);
+		//console.log("adding: "+symbol);
+		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
+	}
+
 	async use(...symbols) {
 		symbols=symbols.flat(Infinity);
 		for (let symbol of symbols)
@@ -248,6 +277,8 @@ export default class Schematic {
 
 		if (entity.getLibId()!=options.symbol)
 			throw new Error("Symbol declaration mismatch, code: "+options.symbol+" existing in schema: "+entity.getLibId()+" ref: "+ref);
+
+		this.ensureLibSymbolSync(options.symbol);
 
 		entity.setFootprint(options.footprint);
 		entity.declared=true;
@@ -369,9 +400,16 @@ export default class Schematic {
 	}
 }
 
-export async function openSchematic(fn, options) {
-	let schematic=new Schematic(fn, options);
-	await schematic.load();
+export async function loadSchematic(fn, options) {
+	let schematic=new Schematic(options);
+	await schematic.load(fn);
+
+	return schematic;
+}
+
+export async function createSchematic(options) {
+	let schematic=new Schematic(options);
+	await schematic.init();
 
 	return schematic;
 }
