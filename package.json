@@ -1,8 +1,11 @@
 {
   "name": "kisch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
-  "repository": "github:limikael/kisch",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/limikael/kisch.git"
+  },
   "scripts": {
     "test": "jasmine"
   },

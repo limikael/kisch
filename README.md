@@ -125,6 +125,8 @@ A script typically:
 
 Scripts do **not** contain geometric layout information; placement is determined by KiCad or kisch heuristics.
 
+Full scripting reference: [DSL.md](./DSL.md)
+
 ### Example Script
 
 ```js
