@@ -130,11 +130,25 @@ export function findGridPath({
 		new Point([ 0, -gridSize ])
 	];
 
-	while (open.size) {
+	let smallest=1000;
+	let maxIter=10000;
+	let iter=0;
+
+	while (open.size && iter<maxIter) {
+		iter++;
+
 		let current = null;
 		for (const n of open.values()) {
 			if (!current || n.f < current.f) current = n;
 		}
+
+		let dist=current.point.sub(to).len();
+		if (dist<smallest) {
+			//console.log("dist=",dist);
+			smallest=dist;
+		}
+
+		//console.log("cp ",current.point," to ",to);
 
 		if (current.point.equals(to)) {
 			const path = [];
@@ -150,15 +164,20 @@ export function findGridPath({
 		closed.add(pointKey(current.point));
 
 		for (const step of steps) {
-			const next = current.point.add(step);
+			const next = current.point.add(step).snap(gridSize);
 			const key = pointKey(next);
 
 			if (closed.has(key)) continue;
 			if (segmentBlocked(current.point, next, avoidRects)) continue;
 			if (segmentBlockedByLines(current.point, next, avoidLines)) continue;
 
-			const g = current.g + gridSize;
-			const f = g + manhattan(next, to);
+			let g = current.g + gridSize;
+			let f = g + manhattan(next, to);
+
+			g=Number(g.toFixed(2));
+			f=Number(f.toFixed(2));
+
+			//console.log("next=",next," key="+key+" g="+g+" f="+f);
 
 			const existing = open.get(key);
 			if (!existing || g < existing.g) {

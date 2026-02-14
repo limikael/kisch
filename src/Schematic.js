@@ -198,6 +198,7 @@ export default class Schematic {
 
 		//console.log(avoidLines);
 
+		//console.log("find grid path ",fromPoint,toPoint);
 		let points=findGridPath({
 			from: fromPoint,
 			to: toPoint,
@@ -205,6 +206,7 @@ export default class Schematic {
 			avoidRects: avoidRects,
 			avoidLines: avoidLines
 		});
+		//console.log("found grid path");
 
 		for (let i=0; i<points.length-1; i++) {
 			let p1=points[i], p2=points[i+1];

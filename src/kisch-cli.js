@@ -45,6 +45,7 @@ program
     .option("-s, --script <script.js>", "Input script to apply to schematic.")
     .option("-e, --emit <script.js>", "Emit script based on schematic.")
     .option("-q, --quiet", "No output, except for errors.")
+    .option("-a, --append", "Append mode: don't remove undeclared.")
     //.option("-v, --verbose", "Print detailed execution info")
     .option(
         "-D, --define <key=value>", 
@@ -115,7 +116,8 @@ try {
         if (typeof mod.default=="function")
             await mod.default(schematic,defines);
 
-        schematic.removeUndeclared();
+        if (!options.append)
+            schematic.removeUndeclared();
     }
 
     if (options.emit) {

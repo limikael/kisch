@@ -27,9 +27,13 @@ export class Point extends Array {
 
 	snap(gridSize) {
 		return new Point([
-			Math.round(this[0]/gridSize)*gridSize,
-			Math.round(this[1]/gridSize)*gridSize,
+			Number((Math.round(this[0]/gridSize)*gridSize).toFixed(2)),
+			Number((Math.round(this[1]/gridSize)*gridSize).toFixed(2)),
 		]);
+	}
+
+	len() {
+		return Math.sqrt(this[0]*this[0]+this[1]*this[1]);
 	}
 }
 
