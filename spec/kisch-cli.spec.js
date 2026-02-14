@@ -8,7 +8,8 @@ describe("kisch-cli",()=>{
 		await runCommand("src/kisch-cli.js",[
 			"spec/kitest-work.kicad_sch",
 			"--script","spec/kitest-basic.js",
-			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols"
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"--quiet"
 		]);
 
 		let schematic=await loadSchematic("spec/kitest-work.kicad_sch",{
@@ -27,6 +28,7 @@ describe("kisch-cli",()=>{
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
 			"-Dtest=123",
 			"-Dtest2=456",
+			"--quiet"
 		]);
 
 		let schematic=await loadSchematic("spec/kitest-work.kicad_sch",{
@@ -40,10 +42,9 @@ describe("kisch-cli",()=>{
 		await fsp.rm("spec/kitest-emitted.js",{force: true});
 		await fsp.copyFile("spec/kitest.kicad_sch","spec/kitest-work.kicad_sch");
 		await runCommand("src/kisch-cli.js",[
-			"spec/kitest-work.kicad_sch",
-			"--script","spec/kitest-emitted.js",
+			"--input","spec/kitest-work.kicad_sch",
+			"--emit","spec/kitest-emitted.js",
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
-			"--emit",
 			"--quiet"
 		]);
 
@@ -56,15 +57,14 @@ describe("kisch-cli",()=>{
 		await fsp.rm("lab/kitest/kitest.kicad_sch",{recursive: true});
 
 		await runCommand("src/kisch-cli.js",[
-			"lab/kitest-org/kitest.kicad_sch",
-			"--script","spec/kitest-emitted.js",
+			"--input","lab/kitest-org/kitest.kicad_sch",
+			"--emit","spec/kitest-emitted.js",
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
-			"--emit",
 			"--quiet"
 		]);
 
 		await runCommand("src/kisch-cli.js",[
-			"lab/kitest/kitest.kicad_sch",
+			"--output","lab/kitest/kitest.kicad_sch",
 			"--script","spec/kitest-emitted.js",
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
 			"--quiet"
@@ -83,9 +83,9 @@ describe("kisch-cli",()=>{
 		await fsp.rm("lab/kitest/kitest.kicad_sch",{recursive: true});
 
 		await runCommand("src/kisch-cli.js",[
-			"lab/kitest/kitest.kicad_sch",
 			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
 			"--input","lab/kitest-org/kitest.kicad_sch",
+			"--output","lab/kitest/kitest.kicad_sch",
 			"--quiet"
 		]);
 

@@ -19,14 +19,14 @@ Examples:
     $ kisch design.sch --script x.js
 
   Generate script for later use:
-    $ kisch fresh.sch --script x.js --emit
+    $ kisch --input fresh.sch --emit x.js
 
-  Transform from separate file:
-    $ kisch out.sch --input template.sch --script x.js
+  Load from one file, apply script, and save in another file:
+    $ kisch --input template.sch --script x.js --output out.sch
+
+  Dry-run, just load schematic and apply script, but don't save:
+    $ kisch --input design.sch --script x.js
 `;
-
-/*  Check what would change (dry-run):
-    $ kisch board.sch --script tidy.js --check*/
 
 program
     .name("kisch")
@@ -36,15 +36,15 @@ program
         "and writes the resulting schematic."
     )
     .version(pkg.version, "--version", "Show version")
-    .argument("<output.kicad_sch>", "Path to the generated schematic file")
+    .argument("[inout.kicad_sch]", "Schematic to be used as input and output.")
 
     // Core options
-    .option("-i, --input <input.kicad_sch>", "Input schematic, defaults to output file if it exists.")
+    .option("-i, --input <input.kicad_sch>", "Input schematic.")
+    .option("-o, --output <output.kicad_sch>","Output schematic.")
     .option("-L, --symbol-dir <path>","Where to find KiCad symbols.")
-    .option("-s, --script <script.js>", "Transformation script JavaScript module.")
-    .option("-e, --emit", "Emit script based on schematic.")
+    .option("-s, --script <script.js>", "Input script to apply to schematic.")
+    .option("-e, --emit <script.js>", "Emit script based on schematic.")
     .option("-q, --quiet", "No output, except for errors.")
-    //.option("-c, --check", "Validate and report changes without writing output")
     //.option("-v, --verbose", "Print detailed execution info")
     .option(
         "-D, --define <key=value>", 
@@ -58,26 +58,30 @@ program
     // Custom help formatting
     .addHelpText("after",HELP_TEXT);
 
-if (process.argv.length <= 2)
-    program.help();
-
 await program.parseAsync();
 
-let options={
-    ...program.opts(),
-    schematic: program.args[0],
-}
-
-if (!options.define)
-    options.define=[];
-
-if (!options.symbolDir)
-    options.symbolDir=
-        process.env.KISCH_SYMBOL_DIR ||
-        process.env.KICAD9_SYMBOL_DIR ||
-        process.env.KICAD_SYMBOL_DIR;
-
 try {
+    let options=program.opts();
+    if (program.args[0]) {
+        if (options.input || options.output)
+            throw new DeclaredError("Can't use both positional arg together with -i or -o.");
+
+        options.input=program.args[0];
+        options.output=program.args[0];
+    }
+
+    if (!options.input && !options.output)
+        program.help();
+
+    if (!options.define)
+        options.define=[];
+
+    if (!options.symbolDir)
+        options.symbolDir=
+            process.env.KISCH_SYMBOL_DIR ||
+            process.env.KICAD9_SYMBOL_DIR ||
+            process.env.KICAD_SYMBOL_DIR;
+
     let cons=global.console;
     if (options.quiet)
         cons={info: ()=>{}, log: ()=>{}};
@@ -85,44 +89,43 @@ try {
     if (!options.symbolDir)
         throw new DeclaredError("Symbol path missing, pass -L, or set KISCH_SYMBOL_DIR, KICAD9_SYMBOL_DIR or KICAD_SYMBOL_DIR");
 
-    //console.log(options);
-
     let schematic;
-    let inputFileName=options.input;
-    if (!inputFileName)
-        inputFileName=options.schematic;
-
-    //console.log("input: "+inputFileName);
-    if (fs.existsSync(inputFileName))
-        schematic=await loadSchematic(inputFileName,{
+    if (options.input) {
+        cons.info("Loading: "+options.input);
+        schematic=await loadSchematic(options.input,{
             symbolLibraryPath: options.symbolDir
         });
-
-    else 
-        schematic=await createSchematic({
-            symbolLibraryPath: options.symbolDir
-        });
-
-    if (options.emit) {
-        await fsp.writeFile(options.script,schematic.getSource());
-        cons.info("Emitting "+options.script);
     }
 
     else {
-        if (options.script) {
-            global.schematic=schematic;
-            let defines=Object.fromEntries(options.define.map(e=>
-                ([e.slice(0,e.indexOf("=")),e.slice(e.indexOf("=")+1)])
-            ));
+        cons.info("Starting with empty schematic");
+        schematic=await createSchematic({
+            symbolLibraryPath: options.symbolDir
+        });
+    }
 
-            let mod=await import(path.resolve(options.script));
-            if (typeof mod.default=="function")
-                await mod.default(schematic,defines);
+    if (options.script) {
+        cons.info("Applying script: "+options.script);
+        global.schematic=schematic;
+        let defines=Object.fromEntries(options.define.map(e=>
+            ([e.slice(0,e.indexOf("=")),e.slice(e.indexOf("=")+1)])
+        ));
 
-            schematic.removeUndeclared();
-        }
+        let mod=await import(path.resolve(options.script));
+        if (typeof mod.default=="function")
+            await mod.default(schematic,defines);
 
-        await schematic.save(options.schematic);
+        schematic.removeUndeclared();
+    }
+
+    if (options.emit) {
+        cons.info("Emitting script: "+options.emit);
+        await fsp.writeFile(options.emit,schematic.getSource());
+    }
+
+    if (options.output) {
+        cons.info("Saving: "+options.output);
+        await schematic.save(options.output);
     }
 }
 
