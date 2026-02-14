@@ -112,28 +112,37 @@ $ kisch --script new_design.js --output new_board.sch
 
 ## SCRIPTING MODEL
 
-kisch executes user-provided JavaScript to perform transformations.
+kisch executes user-provided JavaScript to transform a schematic loaded by the CLI.  
+
+The script is treated as the **source of truth**: any symbol or connection not present in the script will be removed.  
+If the script is empty, the resulting schematic will also be empty. To generate a script that reflects an existing schematic, use the `--emit` flag.
 
 A script typically:
 
-* Loads the schematic structure
 * Adds or modifies symbols
 * Connects pins and nets explicitly
-* Writes the transformed schematic back to disk (if output quadrant is set)
+* Returns a schematic that kisch will write back to disk (if an output is specified)
 
-Scripts do **not** contain geometric layout information. They describe the **functional structure**; applying a script produces a schematic that is *functionally equivalent* to the script, but symbol placement is determined by KiCad or kisch heuristics.
+Scripts do **not** contain geometric layout information; placement is determined by KiCad or kisch heuristics.
 
-### Example
+### Example Script
 
 ```js
 export default async function (sch) {
-	let screw1 = sch.declare("J1", { symbol: "Connector_Generic:Conn_01x04" });
-	let screw2 = sch.declare("J2", { symbol: "Connector_Generic:Conn_01x04" });
+	let j1 = sch.declare("J1", {
+		symbol: "Connector_Generic:Conn_01x04",
+		footprint: "TerminalBlock:TerminalBlock_2P_5.08mm_Vertical"
+	});
 
-	screw1.pin(1).connect("GND");
-	screw1.pin(2).connect("12V");
-	screw2.pin(1).connect("GND");
-	screw2.pin(2).connect("12V");
+	let j2 = sch.declare("J2", {
+		symbol: "Connector_Generic:Conn_01x04",
+		footprint: "TerminalBlock:TerminalBlock_2P_5.08mm_Vertical"
+	});
+
+	j1.pin(1).connect("GND");
+	j1.pin(2).connect("12V");
+	j2.pin(1).connect("GND");
+	j2.pin(2).connect("12V");
 }
 ```
 
@@ -149,7 +158,7 @@ export default async function (sch) {
 ## LIMITATIONS
 
 * Only schematic files are supported
-* kisch targets **KiCad 9 only**
+* kisch targets **KiCad 9** and above only
 * It ensures functional correctness, not placement aesthetics
 * Graphical placement quality remains the responsibility of the user
 
