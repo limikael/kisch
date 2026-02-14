@@ -2,12 +2,12 @@
 
 ## NAME
 
-kisch - schema‑transformation tool for KiCad schematics
+kisch — schema‑transformation tool for KiCad schematics
 
 ## SYNOPSIS
 
 ```
-kisch <schema.kicad_sch> [options]
+kisch [options] [inout.kicad_sch]
 ```
 
 ## DESCRIPTION
@@ -33,103 +33,107 @@ Instead of exporting, regenerating, or synchronizing netlists, kisch transforms 
 * Large schematics can be refactored safely and repeatably
 * Accidental GUI‑level wiring mistakes are avoided
 
-Think of kisch as a schema transformation pass over a KiCad schematic.
+Think of kisch as a **schema transformation pass** over a KiCad schematic.
 
 ## COMMAND LINE INTERFACE
 
-The schematic file is the only positional argument.
+kisch arguments can be understood along **two axes**:
+
+|               | Input             | Output            |
+|---------------|-----------------|-----------------|
+| **Schematic** | `-i` / positional | `-o` / positional |
+| **JavaScript**| `-s`             | `-e`             |
+
+- Positional argument `[inout.kicad_sch]` is a shorthand for both `-i` and `-o`.
+- Flags cannot conflict; e.g., positional cannot be used together with `-i` or `-o`.
+- Filling a quadrant defines the pipeline: kisch reads that representation, optionally transforms it, and emits the target representation.
+
+### Arguments
 
 ```
-kisch schema.kicad_sch --script=<file> [options]
+[inout.kicad_sch]       Schematic to be used as input and output (shorthand for -i and -o)
 ```
 
 ### Options
 
-* `--script=<file>`
+* `-i, --input <input.kicad_sch>`  
+  Input schematic.
 
-  JavaScript file that defines the transformation logic applied to the schematic.
+* `-o, --output <output.kicad_sch>`  
+  Output schematic.
 
-* `--symbol-library-path=<path>`
+* `-L, --symbol-dir <path>`  
+  Where to find KiCad symbols.
 
-  Path to a KiCad symbol library used when adding or resolving symbols.
+* `-s, --script <script.js>`  
+  Input JavaScript script to apply to schematic.
 
-(Additional options may be added over time.)
+* `-e, --emit <script.js>`  
+  Emit JavaScript script based on schematic.
+
+* `-D, --define <key=value>`  
+  Define variable for the script.
+
+* `-q, --quiet`  
+  No output except errors.
+
+* `-h, --help`  
+  Display help.
+
+* `--version`  
+  Show version.
+
+### Examples
+
+**Transform existing schematic in-place:**
+```
+$ kisch design.sch --script x.js
+```
+
+**Generate script for later use:**
+```
+$ kisch --input fresh.sch --emit x.js
+```
+
+**Load from one file, apply script, and save in another file:**
+```
+$ kisch --input template.sch --script x.js --output out.sch
+```
+
+**Dry-run: just load schematic and apply script, do not save:**
+```
+$ kisch --input design.sch --script x.js
+```
+
+**Generate schematic from script (no input schematic):**
+```
+$ kisch --script new_design.js --output new_board.sch
+```
 
 ## SCRIPTING MODEL
 
-kisch is implemented as a Node.js CLI and executes user‑provided JavaScript to perform transformations.
+kisch executes user-provided JavaScript to perform transformations.
 
 A script typically:
 
 * Loads the schematic structure
 * Adds or modifies symbols
 * Connects pins and nets explicitly
-* Writes the transformed schematic back to disk
+* Writes the transformed schematic back to disk (if output quadrant is set)
 
-The exact scripting API is intentionally minimal and focused on structural operations, not rendering or layout aesthetics.
+Scripts do **not** contain geometric layout information. They describe the **functional structure**; applying a script produces a schematic that is *functionally equivalent* to the script, but symbol placement is determined by KiCad or kisch heuristics.
 
 ### Example
 
-The following example hooks up an ESP32-C3 supermini with a CAN transceiver.
-
 ```js
 export default async function (sch) {
-	await sch.use([
-		"Connector_Generic:Conn_01x04",
-		"Connector_Generic:Conn_02x02_Counter_Clockwise",
-		"Connector_Generic:Conn_02x08_Counter_Clockwise",
-		"Connector_Generic:Conn_02x04_Counter_Clockwise"
-	]);
-
-	let screw1 = sch.declare("J1", {
-		symbol: "Connector_Generic:Conn_01x04",
-		footprint: "Peabrain:ScrewTerminals_4P",
-	});
-
-	let screw2 = sch.declare("J2", {
-		symbol: "Connector_Generic:Conn_01x04",
-		footprint: "Peabrain:ScrewTerminals_4P",
-	});
-
-	let vreg = sch.declare("U1", {
-		symbol: "Connector_Generic:Conn_02x02_Counter_Clockwise",
-		footprint: "Peabrain:VoltageRegulator",
-	});
-
-	let esp32 = sch.declare("U2", {
-		symbol: "Connector_Generic:Conn_02x08_Counter_Clockwise",
-		footprint: "Peabrain:ESP32",
-	});
-
-	let tja1050 = sch.declare("U3", {
-		symbol: "Connector_Generic:Conn_02x04_Counter_Clockwise",
-		footprint: "Peabrain:TJA1050",
-	});
+	let screw1 = sch.declare("J1", { symbol: "Connector_Generic:Conn_01x04" });
+	let screw2 = sch.declare("J2", { symbol: "Connector_Generic:Conn_01x04" });
 
 	screw1.pin(1).connect("GND");
 	screw1.pin(2).connect("12V");
-	screw1.pin(3).connect("CANH");
-	screw1.pin(4).connect("CANL");
-
 	screw2.pin(1).connect("GND");
 	screw2.pin(2).connect("12V");
-	screw2.pin(3).connect("CANH");
-	screw2.pin(4).connect("CANL");
-
-	tja1050.pin(1).connect("5V");
-	tja1050.pin(2).connect(esp32.pin(1)); // TX
-	tja1050.pin(3).connect(esp32.pin(13)); // RX
-	tja1050.pin(4).connect("GND");
-	tja1050.pin(6).connect("CANL");
-	tja1050.pin(7).connect("CANH");
-
-	esp32.pin(16).connect("5V");
-	esp32.pin(15).connect("GND");
-
-	vreg.pin(1).connect("12V");
-	vreg.pin(2).connect("GND");
-	vreg.pin(3).connect("GND");
-	vreg.pin(4).connect("5V");
 }
 ```
 
@@ -144,10 +148,9 @@ export default async function (sch) {
 
 ## LIMITATIONS
 
-* kisch targets **KiCad 9 only**
 * Only schematic files are supported
-* kisch cares about schematic geometry just enough to be correct, but not enough to be pretty
-* It can place new symbols so that they function correctly (e.g. without overlapping other symbols), but it does not attempt to find the best or most readable placement
+* kisch targets **KiCad 9 only**
+* It ensures functional correctness, not placement aesthetics
 * Graphical placement quality remains the responsibility of the user
 
 ## USE CASES
@@ -155,11 +158,9 @@ export default async function (sch) {
 * Programmatic net and wire generation
 * Repetitive schematic patterns
 * Safe refactoring of large schematics
-* Hybrid GUI + code‑driven design workflows
+* Hybrid GUI + code-driven design workflows
 
 ## INSTALLATION
-
-kisch is a Node.js‑based CLI. Install with:
 
 ```
 npm install -g kisch
@@ -167,4 +168,4 @@ npm install -g kisch
 
 ## LICENSE
 
-GPL v3 for now... Haven't thought about it... :)
+GPL v3
