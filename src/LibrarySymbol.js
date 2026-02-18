@@ -61,6 +61,10 @@ export default class LibrarySymbol {
             if (sexpCallName(x)=="rectangle") {
                 let start=x.find(x=>sexpCallName(x)=="start").slice(1);
                 let end=x.find(x=>sexpCallName(x)=="end").slice(1);
+
+                /*console.log(start);
+                console.log(end);*/
+
                 let r=Rect.fromCorners(start,end);
 
                 if (!rect)
@@ -68,6 +72,32 @@ export default class LibrarySymbol {
 
                 rect=rect.union(r);
             }
+
+            if (sexpCallName(x)=="polyline") {
+                //console.log("poly line...");
+                for (let sub of x) {
+                    if (sexpCallName(sub)=="pts") {
+                        for (let p of sub) {
+                            if (sexpCallName(p)=="xy") {
+                                let point=[p[1],p[2]];
+
+                                if (!rect)
+                                    rect=new Rect(point,[0,0]);
+
+                                console.log("rect",rect);
+                                console.log("point",point);
+
+                                rect=rect.includePoint(point);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!rect) {
+            //console.log(symbolExp);
+            throw new Error("Symbol doesn't have any rect!");
         }
 
         //console.log(sexpStringify(symbolExp));

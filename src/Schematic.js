@@ -304,12 +304,15 @@ export default class Schematic {
 			center=rects.reduce((r,q)=>r.union(q)).getCenter().snap(2.54);
 
 		if (!at) {
+			//console.log("place: ",librarySymbol.getBoundingRect());
+			//console.log(rects);
 			at=placeRect({
 				start: center,
 				rect: librarySymbol.getBoundingRect(),
 				avoid: rects,
 				step: 2.54,
 			});
+			//console.log("placed!");
 		}
 
 		let expr=[sym("symbol"),

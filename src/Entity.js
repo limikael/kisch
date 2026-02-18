@@ -196,9 +196,11 @@ export default class Entity {
 	}
 
 	getBoundingRect() {
+		if (!this.librarySymbol)
+			throw new Error("Can't get bounding rect, no library symbol");
+
 		//console.log(this.librarySymbol);
 		let r=this.librarySymbol.getBoundingRect();
-		//console.log(r);
 		let p=Point.from(this.getAt());
 
 		return new Rect(p.add(r.corner),r.size);

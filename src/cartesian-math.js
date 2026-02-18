@@ -5,6 +5,9 @@ export class Point extends Array {
 
 		else
 			super();
+
+		if (this.length && (isNaN(this[0]) || isNaN(this[1])))
+			throw new Error("NaN point: l="+this.length+" from: "+a);
 	}
 
 	add(p) {
@@ -15,6 +18,8 @@ export class Point extends Array {
 	}
 
 	sub(p) {
+		//console.log("sub ",this,p);
+
 		return Point.from([
 			this[0]-p[0],
 			this[1]-p[1]
@@ -44,8 +49,13 @@ export class Rect {
 	}
 
 	static fromCorners(p1, p2) {
+		//console.log("p1 ",p1);
+		//console.log("p2 ",p2);
+
 		p1=new Point(p1);
 		p2=new Point(p2);
+
+		//console.log("created...");
 
 		return new Rect(p1,p2.sub(p1));
 	}
@@ -91,6 +101,15 @@ export class Rect {
 		let top=Math.min(this.getTop(),r.getTop());
 		let right=Math.max(this.getRight(),r.getRight());
 		let bottom=Math.max(this.getBottom(),r.getBottom());
+
+		return Rect.fromCorners([left,top],[right,bottom]);
+	}
+
+	includePoint(p) {
+		let left=Math.min(this.getLeft(),p[0]);
+		let top=Math.min(this.getTop(),p[1]);
+		let right=Math.max(this.getRight(),p[0]);
+		let bottom=Math.max(this.getBottom(),p[1]);
 
 		return Rect.fromCorners([left,top],[right,bottom]);
 	}
