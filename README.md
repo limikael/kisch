@@ -4,6 +4,8 @@
 
 kisch — schema‑transformation tool for KiCad schematics
 
+[Watch video tutorial](https://www.youtube.com/watch?v=VylXziX1D8U)
+
 ## SYNOPSIS
 
 ```
