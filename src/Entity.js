@@ -18,9 +18,11 @@ class EntityPin {
 		let librarySymbol=this.entity.getLibrarySymbol();
 		let librarySymbolPin=librarySymbol.getPin(Number(this.getNum()));
 		let pinAt=Point.from(librarySymbolPin.at);
+		let symbolAt=this.entity.getAt();
 		pinAt[1]=-pinAt[1];
 
-		return Point.from(this.entity.getAt()).add(pinAt);
+
+		return Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
 	}
 
 	isConnected(p) {

@@ -40,6 +40,18 @@ export class Point extends Array {
 	len() {
 		return Math.sqrt(this[0]*this[0]+this[1]*this[1]);
 	}
+
+	rotateDegrees(deg) {
+		const rad = deg * Math.PI / 180;
+
+		const cos = Math.cos(rad);
+		const sin = Math.sin(rad);
+
+		return new Point(
+			this[0] * cos - this[1] * sin,
+			this[0] * sin + this[1] * cos
+		);
+	}
 }
 
 export class Rect {
