@@ -21,7 +21,6 @@ class EntityPin {
 		let symbolAt=this.entity.getAt();
 		pinAt[1]=-pinAt[1];
 
-
 		return Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
 	}
 
