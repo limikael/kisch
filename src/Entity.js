@@ -41,6 +41,9 @@ class EntityPin {
 	}
 
 	connect(p) {
+		if (!p)
+			return;
+
 		if (this.isConnected(p)) {
 			if (typeof p=="string") {
 				for (let e of this.entity.schematic.getLabelEntities(p)) {
