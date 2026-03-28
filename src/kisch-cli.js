@@ -6,11 +6,7 @@ import path from "node:path";
 import pkg from "../package.json" with { type: "json" };
 import {DeclaredError} from "./js-util.js";
 import fs, {promises as fsp} from "fs";
-
-/*todo...
-
-defines
-wires*/
+import {compoundSymbol} from "./CompoundSymbol.js";
 
 let HELP_TEXT=`
 Examples:
@@ -112,6 +108,7 @@ try {
             ([e.slice(0,e.indexOf("=")),e.slice(e.indexOf("=")+1)])
         ));
 
+        global.compoundSymbol=compoundSymbol;
         let mod=await import(path.resolve(options.script));
         if (typeof mod.default=="function")
             await mod.default(schematic,defines);

@@ -179,6 +179,36 @@ export default class Entity {
 		el[2]=footprint;
 	}
 
+	removeProp(name) {
+		if (this.getType()!="symbol")
+			throw new Error("Only symbols have props");
+
+		let index=this.sexpr.findIndex(a=>sexpCallName(a)=="property" && a[1]==name);
+		if (index<0)
+			return;
+
+		this.sexpr.splice(index,1);
+	}
+
+	setProp(name, value) {
+		if (this.getType()!="symbol")
+			throw new Error("Only symbols have props");
+
+		let el=this.sexpr.find(a=>sexpCallName(a)=="property" && a[1]==name);
+		if (!el) {
+			let exp=[sym("property"),name,"",
+				[sym("effects"),
+					[sym("hide"),sym("yes")]
+				]
+			];
+
+			this.sexpr.push(exp);
+			el=exp;
+		}
+
+		el[2]=value;
+	}
+
 	getLibId() {
 		return this.sexpr.find(x=>sexpCallName(x)=="lib_id")[1];
 	}
@@ -222,12 +252,6 @@ export default class Entity {
 
 	getType() {
 		return this.type;
-		/*let t=symName(this.sexpr[0]);
-
-		if (!["symbol","wire","label"].includes(t))
-			throw new Error("Unknown entity: "+t);
-
-		return t;*/
 	}
 
 	getConnectionPoints() {
@@ -251,5 +275,16 @@ export default class Entity {
 			default:
 				throw new Error("Unknown entity type: "+this.getType());
 		}
+	}
+
+	connect(...pins) {
+		if (this.getType()!="symbol")
+			throw new Error("can only connect sybols");
+
+		if (pins.length!=this.pins.length)
+			throw new Error("pin count mismatch");
+
+		for (let i=0; i<this.pins.length; i++)
+			this.pins[i].connect(pins[i]);
 	}
 }

@@ -283,6 +283,22 @@ export default class Schematic {
 		this.ensureLibSymbolSync(options.symbol);
 
 		entity.setFootprint(options.footprint);
+
+		if (options.name)
+			entity.setName(options.name);
+
+		if (options.lcsc)
+			entity.setProp("lcsc",options.lcsc);
+
+		else
+			entity.removeProp("lcsc");
+
+		if (options.lcscRot)
+			entity.setProp("lcscRot",String(options.lcscRot));
+
+		else
+			entity.removeProp("lcscRot");
+
 		entity.declared=true;
 
 		return entity;
