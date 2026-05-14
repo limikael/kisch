@@ -1,4 +1,6 @@
 import {arrayGetMinIndex, arrayGetMaxIndex} from "../src/js-util.js";
+import {collapsePath} from "./grid-util.js";
+import {astar} from "./astar.js";
 
 export default class RoutingGrid {
 	constructor() {
@@ -37,6 +39,31 @@ export default class RoutingGrid {
 
 		else
 			throw new Error("can only draw h/v");
+	}
+
+	drawLines(points) {
+		for (let i=0; i<points.length-1; i++) {
+			this.drawLine(
+				points[i].x,
+				points[i].y,
+				points[i+1].x,
+				points[i+1].y,
+			)
+		}
+	}
+
+	drawRect(x1, y1, x2, y2) {
+		if (x2<x1) { let v=x1; x1=x2; x2=v; }
+		if (y2<y1) { let v=y1; y1=y2; y2=v; }
+		for (let y=y1; y<=y2; y++) {
+			for (let x=x1; x<=x2; x++) {
+				if (x!=x2)
+					this.getGrid(x,y).h=true;
+
+				if (y!=y2)
+					this.getGrid(x,y).v=true;
+			}
+		}
 	}
 
 	getTop() {
@@ -88,5 +115,35 @@ export default class RoutingGrid {
 		}
 
 		return s;
+	}
+
+	findPath(x1, y1, x2, y2) {
+		let neighbours=(g)=>{
+			let n=[];
+
+			if (!this.getGrid(g.x,g.y).h)
+				n.push({x: g.x+1, y: g.y});
+
+			if (!this.getGrid(g.x-1,g.y).h)
+				n.push({x: g.x-1, y: g.y});
+
+			if (!this.getGrid(g.x,g.y).v)
+				n.push({x: g.x, y: g.y+1});
+
+			if (!this.getGrid(g.x,g.y-1).v)
+				n.push({x: g.x, y: g.y-1});
+
+			return n;
+		}
+
+		let steps=astar({
+			start: {x: x1, y: y1},
+			neighbours,
+			isGoal: g=>(g.x==x2 && g.y==y2),
+			cost: ()=>1,
+			key: g=>String(g.x)+"|"+String(g.y)
+		});
+
+		return collapsePath(steps);
 	}
 }
