@@ -13,3 +13,21 @@ export function arrayUnique(array) {
 
     return Array.from(result);
 }
+
+export function arrayGetMinIndex(array) {
+    let min;
+    for (let k of Object.keys(array))
+        if (min===undefined || Number(k)<min)
+            min=Number(k);
+
+    return min;
+}
+
+export function arrayGetMaxIndex(array) {
+    let max;
+    for (let k of Object.keys(array))
+        if (max===undefined || Number(k)>max)
+            max=Number(k);
+
+    return max;
+}
