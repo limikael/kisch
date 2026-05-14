@@ -1,5 +1,5 @@
 import {arrayGetMinIndex, arrayGetMaxIndex} from "../src/js-util.js";
-import {collapsePath} from "./grid-util.js";
+import {collapsePath, manhattanDist} from "./grid-util.js";
 import {astar} from "./astar.js";
 
 export default class RoutingGrid {
@@ -8,6 +8,13 @@ export default class RoutingGrid {
 	}
 
 	getGrid(x, y) {
+		if (!this.grid[y] || !this.grid[y][x])
+			return {};
+
+		return this.grid[y][x];
+	}
+
+	updateGrid(x, y, update) {
 		//console.log(x+","+y);
 		if (!this.grid[y])
 			this.grid[y]=[];
@@ -15,19 +22,19 @@ export default class RoutingGrid {
 		if (!this.grid[y][x])
 			this.grid[y][x]={};
 
-		return this.grid[y][x];
+		this.grid[y][x]={...this.grid[y][x], ...update};
 	}
 
 	drawHorizontalLine(x, y, x2) {
 		if (x2<x) { let v=x; x=x2; x2=v; }
 		for (let i=x; i<x2; i++)
-			this.getGrid(i,y).h=true;
+			this.updateGrid(i,y,{h: true});
 	}
 
 	drawVerticalLine(x, y, y2) {
 		if (y2<y) { let v=y; y=y2; y2=v; }
 		for (let i=y; i<y2; i++)
-			this.getGrid(x,i).v=true;
+			this.updateGrid(x,i,{v: true});
 	}
 
 	drawLine(x1, y1, x2, y2) {
@@ -58,10 +65,10 @@ export default class RoutingGrid {
 		for (let y=y1; y<=y2; y++) {
 			for (let x=x1; x<=x2; x++) {
 				if (x!=x2)
-					this.getGrid(x,y).h=true;
+					this.updateGrid(x,y,{h: true});
 
 				if (y!=y2)
-					this.getGrid(x,y).v=true;
+					this.updateGrid(x,y,{v: true});
 			}
 		}
 	}
@@ -122,25 +129,33 @@ export default class RoutingGrid {
 			let n=[];
 
 			if (!this.getGrid(g.x,g.y).h)
-				n.push({x: g.x+1, y: g.y});
+				n.push({x: g.x+1, y: g.y, from: "w"});
 
 			if (!this.getGrid(g.x-1,g.y).h)
-				n.push({x: g.x-1, y: g.y});
+				n.push({x: g.x-1, y: g.y, from: "e"});
 
 			if (!this.getGrid(g.x,g.y).v)
-				n.push({x: g.x, y: g.y+1});
+				n.push({x: g.x, y: g.y+1, from: "n"});
 
 			if (!this.getGrid(g.x,g.y-1).v)
-				n.push({x: g.x, y: g.y-1});
+				n.push({x: g.x, y: g.y-1, from: "s"});
 
 			return n;
+		}
+
+		let cost=(g1, g2)=>{
+			if (g1.from==g2.from)
+				return 1;
+
+			return 2;
 		}
 
 		let steps=astar({
 			start: {x: x1, y: y1},
 			neighbours,
 			isGoal: g=>(g.x==x2 && g.y==y2),
-			cost: ()=>1,
+			cost,
+//			heuristic: (x,y)=>manhattanDist(x,y,x2,y2),
 			key: g=>String(g.x)+"|"+String(g.y)
 		});
 
