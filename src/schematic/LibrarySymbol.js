@@ -126,7 +126,9 @@ export class LibrarySymbolPin {
 
             switch (symName(e[0])) {
                 case "at":
+                    //console.log(e);
                     this.at = e.slice(1).map(Number); // [x, y, rotation]
+                    this.rotation=Number(e[3]);
                     break;
                 case "length":
                     this.length = Number(e[1]);

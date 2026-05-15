@@ -34,6 +34,18 @@ export default class RoutingGrid {
 		this.grid[y][x]={...this.grid[y][x], ...update};
 	}
 
+	drawPoint(x, y) {
+		x=this.snap(x);
+		y=this.snap(y);
+		this.updateGrid(x,y,{b: true});
+	}
+
+	clearPoint(x, y) {
+		x=this.snap(x);
+		y=this.snap(y);
+		this.updateGrid(x,y,{b: false});
+	}
+
 	drawHorizontalLine(x, y, x2) {
 		x=this.snap(x);
 		y=this.snap(y);
@@ -63,6 +75,9 @@ export default class RoutingGrid {
 
 		else
 			throw new Error("can only draw h/v");
+
+		this.drawPoint(x1,y1);
+		this.drawPoint(x2,y2);
 	}
 
 	drawLines(points) {
@@ -86,6 +101,8 @@ export default class RoutingGrid {
 		if (y2<y1) { let v=y1; y1=y2; y2=v; }
 		for (let y=y1; y<=y2; y++) {
 			for (let x=x1; x<=x2; x++) {
+				this.updateGrid(x,y,{b: true});
+
 				if (x!=x2)
 					this.updateGrid(x,y,{h: true});
 
@@ -133,7 +150,7 @@ export default class RoutingGrid {
 
 		for (let y=this.getTop(); y<=this.getBottom(); y++) {
 			for (let x=this.getLeft(); x<=this.getRight(); x++)
-				s+=("+"+(this.getGrid(x,y).h?"-":" "));
+				s+=((this.getGrid(x,y).b?"*":"+")+(this.getGrid(x,y).h?"-":" "));
 
 			s+="\n";
 
@@ -150,16 +167,20 @@ export default class RoutingGrid {
 		let neighbours=(g)=>{
 			let n=[];
 
-			if (!this.getGrid(g.x,g.y).h)
+			if (!this.getGrid(g.x,g.y).h &&
+					!this.getGrid(g.x+1,g.y).b)
 				n.push({x: g.x+1, y: g.y, from: "w"});
 
-			if (!this.getGrid(g.x-1,g.y).h)
+			if (!this.getGrid(g.x-1,g.y).h &&
+					!this.getGrid(g.x-1,g.y).b)
 				n.push({x: g.x-1, y: g.y, from: "e"});
 
-			if (!this.getGrid(g.x,g.y).v)
+			if (!this.getGrid(g.x,g.y).v &&
+					!this.getGrid(g.x,g.y+1).b)
 				n.push({x: g.x, y: g.y+1, from: "n"});
 
-			if (!this.getGrid(g.x,g.y-1).v)
+			if (!this.getGrid(g.x,g.y-1).v &&
+					!this.getGrid(g.x,g.y-1).b)
 				n.push({x: g.x, y: g.y-1, from: "s"});
 
 			return n;

@@ -5,22 +5,38 @@ class EntityPin {
 	constructor(sexpr, entity) {
 		this.sexpr=sexpr;
 		this.entity=entity;
-
-		//console.log(this.sexpr);
 	}
 
 	getNum() {
 		return this.sexpr[1];
 	}
 
-	getPoint() {
+	initPoint() {
 		let librarySymbol=this.entity.getLibrarySymbol();
 		let librarySymbolPin=librarySymbol.getPin(Number(this.getNum()));
 		let pinAt=Point.from(librarySymbolPin.at);
 		let symbolAt=this.entity.getAt();
 		pinAt[1]=-pinAt[1];
 
-		return Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
+		this.point=Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
+
+		let leg=new Point(librarySymbolPin.length,0);
+		leg=leg.rotateDegrees(librarySymbolPin.rotation);
+		this.legPoint=this.point.add(leg);
+	}
+
+	getLegPoint() {
+		if (!this.legPoint)
+			this.initPoint();
+
+		return this.legPoint;
+	}
+
+	getPoint() {
+		if (!this.point)
+			this.initPoint();
+
+		return this.point;
 	}
 
 	isConnected(p) {
@@ -106,6 +122,10 @@ export default class Entity {
 		for (let a of this.sexpr)
 			if (sexpCallName(a)=="pin")
 				this.pins.push(new EntityPin(a,this));
+	}
+
+	getPins() {
+		return this.pins;
 	}
 
 	getSexp() {

@@ -191,34 +191,29 @@ export default class Schematic {
 	}
 
 	addConnectionWire(fromPoint, toPoint) {
-		/*let connectionPoints=this.getConnectionPoints();
-		connectionPoints=connectionPoints.filter(p=>!p.equals(fromPoint) && !p.equals(toPoint));
-		let avoidRects=connectionPoints.map(p=>new Rect(p.sub([0.635,0.635]),[1.27,1.27]));
-
-		let avoidLines=this.entities.filter(e=>e.getType()=="wire").map(e=>{
-			return ({
-				a: e.getConnectionPoints()[0],
-				b: e.getConnectionPoints()[1],
-			})
-		});
-
-		//console.log(avoidLines);
-
-		//console.log("find grid path ",fromPoint,toPoint);
-		let points=findGridPath({
-			from: fromPoint,
-			to: toPoint,
-			gridSize: 1.27,
-			avoidRects: avoidRects,
-			avoidLines: avoidLines
-		});*/
-		//console.log("found grid path");
-
 		let grid=new RoutingGrid({spacing: 1.27});
-		for (let sym of this.getSymbolEntities()) {
+		for (let sym of this.getEntities({type: "symbol"})) {
 			let r=sym.getBoundingRect();
 			grid.drawRect(r.getLeft(),r.getTop(),r.getRight(),r.getBottom());
+
+			for (let pin of sym.getPins()) {
+				let point=pin.getPoint();
+				let legPoint=pin.getLegPoint();
+				grid.drawLine(point[0],point[1],legPoint[0],legPoint[1]);
+			}
 		}
+
+		for (let wire of this.getEntities({type: "wire"})) {
+			let [p1,p2]=wire.getConnectionPoints();
+			grid.drawLine(p1[0],p1[1],p2[0],p2[1]);
+		}
+
+		/*for (let p of this.getConnectionPoints()) {
+			grid.drawPoint(p[0],p[1]);
+		}*/
+
+		grid.clearPoint(fromPoint[0],fromPoint[1]);
+		grid.clearPoint(toPoint[0],toPoint[1]);
 
 		let points=grid.findPath(fromPoint[0],fromPoint[1],toPoint[0],toPoint[1]);
 

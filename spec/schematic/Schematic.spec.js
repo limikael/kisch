@@ -1,5 +1,6 @@
 import {loadSchematic} from "../../src/schematic/Schematic.js";
 import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
+import {Rect} from "../../src/utils/cartesian-math.js";
 import fs from "fs";
 import path from "path";
 
@@ -69,6 +70,17 @@ describe("schematic",()=>{
 
 		for (let s of schematic.getEntities({type: "symbol"})) {
 			schematic.drawWireRect(s.getBoundingRect());
+			for (let p of s.getPins()) {
+				schematic.drawWireRect(
+					new Rect(p.getPoint().sub([0.25,0.25]),[0.5,0.5])
+				);
+
+				schematic.drawWireRect(
+					new Rect(p.getLegPoint().sub([0.25,0.25]),[0.5,0.5])
+				);
+
+				schematic.drawWireLine(p.getPoint(),p.getLegPoint());
+			}
 		}
 
 		await schematic.save(fn);
@@ -89,6 +101,8 @@ describe("schematic",()=>{
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(false);
 		schematic.sym("J1").pin(1).connect(schematic.sym("J3").pin(1));
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
+
+		schematic.sym("J1").pin(1).connect(schematic.sym("J4").pin(2));
 
 		await schematic.save(fn);
 	});

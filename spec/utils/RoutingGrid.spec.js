@@ -14,7 +14,10 @@ describe("RoutingGrid",()=>{
 		grid.drawLines(p);
 
 		//console.log("t: "+grid.getTop()+" b: "+grid.getBottom()+" l: "+grid.getLeft()+" r: "+grid.getRight());
-		//console.log(grid.toGridString());
+
+		grid.drawRect(9,6,11,8);
+		grid.drawLines(grid.findPath(5,7,10,5));
+		console.log(grid.toGridString());
 		//console.log("steps: "+stats.steps);
 		//console.log(p);
 
