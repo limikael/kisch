@@ -6,8 +6,11 @@ export function astar({
     cost,
     heuristic = () => 0,
     key,
+    stats
 }) {
     if (!key) throw new Error("key(n) is required");
+    if (!stats)
+        stats={};
 
     // Goal resolution
     const goalKey = goal !== undefined ? key(goal) : null;
@@ -67,7 +70,10 @@ export function astar({
 
     push(start, getHeuristic(start));
 
+    stats.steps=0;
+
     while (open.length > 0) {
+        stats.steps++;
         const current = pop();
         const ck = key(current);
 

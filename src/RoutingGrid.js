@@ -124,7 +124,7 @@ export default class RoutingGrid {
 		return s;
 	}
 
-	findPath(x1, y1, x2, y2) {
+	findPath(x1, y1, x2, y2, stats) {
 		let neighbours=(g)=>{
 			let n=[];
 
@@ -155,8 +155,9 @@ export default class RoutingGrid {
 			neighbours,
 			isGoal: g=>(g.x==x2 && g.y==y2),
 			cost,
-//			heuristic: (x,y)=>manhattanDist(x,y,x2,y2),
-			key: g=>String(g.x)+"|"+String(g.y)
+			heuristic: (g)=>manhattanDist(g.x,g.y,x2,y2),
+			key: g=>`${g.x}|${g.y}|${g.from??""}`,
+			stats
 		});
 
 		return collapsePath(steps);
