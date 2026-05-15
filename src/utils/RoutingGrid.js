@@ -210,4 +210,21 @@ export default class RoutingGrid {
 
 		return collapsePath(steps).map(p=>({x: this.unsnap(p.x), y: this.unsnap(p.y)}));
 	}
+
+	getPoints() {
+		let points=[];
+
+		for (let y=arrayGetMinIndex(this.grid); y<=arrayGetMaxIndex(this.grid); y++) {
+			let row=this.grid[y];
+			if (row) {
+				for (let x=arrayGetMinIndex(row); x<=arrayGetMaxIndex(row); x++) {
+					let g=this.getGrid(x,y)
+					if (g.b || g.h || g.v)
+						points.push({x,y});
+				}
+			}
+		}
+
+		return points.map(p=>({x: this.unsnap(p.x), y: this.unsnap(p.y)}));
+	}
 }

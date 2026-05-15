@@ -69,6 +69,16 @@ export default class Schematic {
 			if (filter.type && e.getType()!=filter.type)
 				return false;
 
+			if (filter.connectonPoint) {
+				let found=false;
+				for (let p of e.getConnectionPoints())
+					if (filter.connectonPoint.equals(p))
+						found=true;
+
+				if (!found)
+					return false;
+			}
+
 			return true;
 		});
 	}
@@ -226,6 +236,35 @@ export default class Schematic {
 		}
 	}
 
+	getConnectedWires(connectonPoint) {
+		let points=[Point.from(connectonPoint)];
+		let entities=[];
+
+		while (points.length) {
+			let p=Point.from(points.pop());
+			//console.log(p);
+			for (let e of this.getEntities({type: "wire", connectonPoint: p})) {
+				if (!entities.includes(e)) {
+					entities.push(e);
+					points.push(...e.getConnectionPoints());
+				}
+			}
+		}
+
+		return entities;
+	}
+
+	getConnectedWirePoints(connectonPoint) {
+		let wires=this.getConnectedWires(connectonPoint);
+		let grid=new RoutingGrid({spacing: 1.27});
+		for (let w of wires) {
+			let p=w.getConnectionPoints();
+			grid.drawLine(p[0][0],p[0][1],p[1][0],p[1][1]);
+		}
+
+		return grid.getPoints();
+	}
+
 	drawWireLine(p1, p2) {
 		let expr=[sym("wire"),
 			[sym("pts"), [sym("xy"),p1[0],p1[1]], [sym("xy"),p2[0],p2[1]]],
@@ -241,6 +280,10 @@ export default class Schematic {
 		this.drawWireLine([r.getRight(),r.getTop()], [r.getRight(),r.getBottom()]);
 		this.drawWireLine([r.getRight(),r.getBottom()], [r.getLeft(),r.getBottom()]);
 		this.drawWireLine([r.getLeft(),r.getBottom()], [r.getLeft(),r.getTop()]);
+	}
+
+	drawWirePoint(p) {
+		this.drawWireRect(new Rect(p.sub([0.25,0.25]),[0.5,0.5]));
 	}
 
 	addLabel(point, label) {
@@ -259,8 +302,6 @@ export default class Schematic {
 	}
 
 	getLibSymbolsExp() {
-		//return sexpFirst(this.sexpr,x=>sexpCallName(x)=="lib_symbols")
-
 		for (let exp of this.sexp)
 			if (sexpCallName(exp)=="lib_symbols")
 				return exp;
@@ -287,12 +328,6 @@ export default class Schematic {
 		//console.log("adding: "+symbol);
 		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
 	}
-
-	/*async use(...symbols) {
-		symbols=symbols.flat(Infinity);
-		for (let symbol of symbols)
-			await this.ensureLibSymbol(symbol);
-	}*/
 
 	declare(ref, options) {
 		let entity=this.entities.find(e=>e.getType()=="symbol" && e.getReference()==ref);

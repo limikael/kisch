@@ -1,6 +1,6 @@
 import {loadSchematic} from "../../src/schematic/Schematic.js";
 import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
-import {Rect} from "../../src/utils/cartesian-math.js";
+import {Rect, Point} from "../../src/utils/cartesian-math.js";
 import fs from "fs";
 import path from "path";
 
@@ -71,17 +71,31 @@ describe("schematic",()=>{
 		for (let s of schematic.getEntities({type: "symbol"})) {
 			schematic.drawWireRect(s.getBoundingRect());
 			for (let p of s.getPins()) {
-				schematic.drawWireRect(
-					new Rect(p.getPoint().sub([0.25,0.25]),[0.5,0.5])
-				);
-
-				schematic.drawWireRect(
-					new Rect(p.getLegPoint().sub([0.25,0.25]),[0.5,0.5])
-				);
-
+				schematic.drawWirePoint(p.getPoint());
+				schematic.drawWirePoint(p.getLegPoint());
 				schematic.drawWireLine(p.getPoint(),p.getLegPoint());
 			}
 		}
+
+		await schematic.save(fn);
+	});
+
+	it("can find connected wires",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		let p=schematic.sym("J1").pin(1).getPoint();
+		let wires=schematic.getConnectedWires(p);
+		expect(wires.length).toEqual(3);
+
+		let points=schematic.getConnectedWirePoints(p);
+		for (let p of points)
+			schematic.drawWirePoint(new Point(p));
 
 		await schematic.save(fn);
 	});
