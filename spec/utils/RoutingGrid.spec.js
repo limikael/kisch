@@ -24,6 +24,22 @@ describe("RoutingGrid",()=>{
 		expect(p).toEqual([ { x: 2, y: 1 }, { x: 1, y: 1 }, { x: 1, y: 7 }, { x: 3, y: 7 } ]);
 	});
 
+	it("can route from several points",()=>{
+		let grid=new RoutingGrid();
+		grid.drawLine(0,0,29,0);
+		grid.drawLine(0,9,29,9);
+		grid.drawLine(0,0,0,9);
+		grid.drawLine(29,0,29,9);
+
+		let p=grid.findPath({
+			start: [{x:2,y:1},{x:2,y:4},{x:2,y:7}],
+			goal: [{x:20,y:5},{x:15,y:5}/*,{x:3,y:8}*/]
+		});
+		grid.drawLines(p);
+
+		console.log(grid.toGridString());
+	});
+
 	it("can snap",()=>{
 		let grid=new RoutingGrid({spacing: 2.54});
 		grid.drawLine(0,0,29*2.54,0);

@@ -218,10 +218,17 @@ export default class Schematic {
 			grid.drawLine(p1[0],p1[1],p2[0],p2[1]);
 		}
 
-		grid.clearPoint(fromPoint[0],fromPoint[1]);
-		grid.clearPoint(toPoint[0],toPoint[1]);
+		let startPoints=[fromPoint,...this.getConnectedWirePoints(fromPoint)];
+		let goalPoints=[toPoint,...this.getConnectedWirePoints(toPoint)];
 
-		let points=grid.findPath(fromPoint[0],fromPoint[1],toPoint[0],toPoint[1]);
+		for (let p of [...startPoints,...goalPoints])
+			grid.clearPoint(p[0],p[1]);
+
+		let points=grid.findPath({
+			start: startPoints.map(p=>({x: p[0], y: p[1]})),
+			goal: goalPoints.map(p=>({x: p[0], y: p[1]})),
+		});
+
 
 		for (let i=0; i<points.length-1; i++) {
 			let p1=new Point(points[i]), p2=new Point(points[i+1]);
@@ -262,7 +269,7 @@ export default class Schematic {
 			grid.drawLine(p[0][0],p[0][1],p[1][0],p[1][1]);
 		}
 
-		return grid.getPoints();
+		return grid.getPoints().map(p=>[p.x,p.y]);
 	}
 
 	drawWireLine(p1, p2) {
@@ -429,6 +436,12 @@ export default class Schematic {
 
 	markConnectionDeclared(from, to) {
 		let wires=this.getConnectionPath(from,to);
+		if (!wires) {
+			console.log("wires?");
+			console.log(wires);
+			return;
+		}
+
 		for (let wire of wires) {
 			if (wire.getType()!="wire")
 				throw new Error("Sanity check... Wire is not a wire...");

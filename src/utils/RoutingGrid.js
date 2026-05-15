@@ -163,9 +163,15 @@ export default class RoutingGrid {
 		return s;
 	}
 
-	findPath(x1, y1, x2, y2, stats) {
+	findPath({start, goal, stats}) {
+		start=start.map(p=>({x: this.snap(p.x), y: this.snap(p.y)}));
+		goal=goal.map(p=>({x: this.snap(p.x), y: this.snap(p.y)}));
+
 		let neighbours=(g)=>{
 			let n=[];
+
+			if (g=="start")
+				return start;
 
 			if (!this.getGrid(g.x,g.y).h &&
 					!this.getGrid(g.x+1,g.y).b)
@@ -193,20 +199,39 @@ export default class RoutingGrid {
 			return 2;
 		}
 
-		x1=this.snap(x1);
-		y1=this.snap(y1);
-		x2=this.snap(x2);
-		y2=this.snap(y2);
+		let heuristic=(g)=>{
+			return 0;
+
+			if (g=="start")
+				return 0;
+
+			return manhattanDist(g.x,g.y,goal.x,goal.y)
+		}
+
+		let key=(g)=>{
+			if (g=="start")
+				return "start";
+
+			return `${g.x}|${g.y}|${g.from??""}`;
+		}
+
+		let isGoal=g=>{
+			for (let p of goal)
+				if (p.x==g.x && p.y==g.y)
+					return true;
+		}
 
 		let steps=astar({
-			start: {x: x1, y: y1},
+			start: "start",
 			neighbours,
-			isGoal: g=>(g.x==x2 && g.y==y2),
+			isGoal, //: g=>(g.x==goal.x && g.y==goal.y),
 			cost,
-			heuristic: (g)=>manhattanDist(g.x,g.y,x2,y2),
-			key: g=>`${g.x}|${g.y}|${g.from??""}`,
+			heuristic,
+			key,
 			stats
 		});
+
+		steps=steps.filter(i=>i!="start");
 
 		return collapsePath(steps).map(p=>({x: this.unsnap(p.x), y: this.unsnap(p.y)}));
 	}

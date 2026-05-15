@@ -117,6 +117,7 @@ describe("schematic",()=>{
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
 
 		schematic.sym("J1").pin(1).connect(schematic.sym("J4").pin(2));
+		schematic.sym("J4").pin(4).connect(schematic.sym("J3").pin(1));
 
 		await schematic.save(fn);
 	});
