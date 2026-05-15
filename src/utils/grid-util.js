@@ -31,7 +31,7 @@ export function collapsePath(path) {
 
     result.push(path[path.length - 1]);
 
-    return result;
+    return result.map(p=>({x: p.x, y: p.y}));
 }
 
 export function manhattanDist(x1, y1, x2, y2) {

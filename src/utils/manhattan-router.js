@@ -1,4 +1,4 @@
-import { Point, pointKey } from "../src/cartesian-math.js";
+import { Point, pointKey } from "./cartesian-math.js";
 
 function manhattan(a, b) {
 	return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);

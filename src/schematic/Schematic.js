@@ -1,11 +1,12 @@
 import SymbolLibrary from "./SymbolLibrary.js";
 import fs, {promises as fsp} from "fs";
 import Entity from "./Entity.js";
-import {Point, pointKey, Rect} from "./cartesian-math.js";
-import {findGridPath} from "../src/manhattan-router.js";
-import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "./sexp.js";
-import {placeRect} from "./place-rect.js";
-import {arrayUnique} from "./js-util.js";
+import {Point, pointKey, Rect} from "../utils/cartesian-math.js";
+//import {findGridPath} from "../utils/manhattan-router.js";
+import RoutingGrid from "../utils/RoutingGrid.js";
+import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "../utils/sexp.js";
+import {placeRect} from "../utils/place-rect.js";
+import {arrayUnique} from "../utils/js-util.js";
 
 export default class Schematic {
 	constructor(options) {
@@ -63,8 +64,13 @@ export default class Schematic {
 		await fsp.writeFile(fn,content);
 	}
 
-	getEntities() {
-		return this.entities;
+	getEntities(filter={}) {
+		return this.entities.filter(e=>{
+			if (filter.type && e.getType()!=filter.type)
+				return false;
+
+			return true;
+		});
 	}
 
 	sym(ref) {
@@ -185,7 +191,7 @@ export default class Schematic {
 	}
 
 	addConnectionWire(fromPoint, toPoint) {
-		let connectionPoints=this.getConnectionPoints();
+		/*let connectionPoints=this.getConnectionPoints();
 		connectionPoints=connectionPoints.filter(p=>!p.equals(fromPoint) && !p.equals(toPoint));
 		let avoidRects=connectionPoints.map(p=>new Rect(p.sub([0.635,0.635]),[1.27,1.27]));
 
@@ -205,11 +211,19 @@ export default class Schematic {
 			gridSize: 1.27,
 			avoidRects: avoidRects,
 			avoidLines: avoidLines
-		});
+		});*/
 		//console.log("found grid path");
 
+		let grid=new RoutingGrid({spacing: 1.27});
+		for (let sym of this.getSymbolEntities()) {
+			let r=sym.getBoundingRect();
+			grid.drawRect(r.getLeft(),r.getTop(),r.getRight(),r.getBottom());
+		}
+
+		let points=grid.findPath(fromPoint[0],fromPoint[1],toPoint[0],toPoint[1]);
+
 		for (let i=0; i<points.length-1; i++) {
-			let p1=points[i], p2=points[i+1];
+			let p1=new Point(points[i]), p2=new Point(points[i+1]);
 			let expr=[sym("wire"),
 				[sym("pts"), [sym("xy"),p1[0],p1[1]], [sym("xy"),p2[0],p2[1]]],
 				[sym("stroke"), [sym("width"),0], [sym("type"), sym("default")]],
@@ -219,6 +233,23 @@ export default class Schematic {
 			let e=new Entity(expr,this);
 			this.entities.push(e);
 		}
+	}
+
+	drawWireLine(p1, p2) {
+		let expr=[sym("wire"),
+			[sym("pts"), [sym("xy"),p1[0],p1[1]], [sym("xy"),p2[0],p2[1]]],
+			[sym("stroke"), [sym("width"),0], [sym("type"), sym("default")]],
+			[sym("uuid"),crypto.randomUUID()]
+		];
+
+		this.entities.push(new Entity(expr,this));
+	}
+
+	drawWireRect(r) {
+		this.drawWireLine([r.getLeft(),r.getTop()], [r.getRight(),r.getTop()]);
+		this.drawWireLine([r.getRight(),r.getTop()], [r.getRight(),r.getBottom()]);
+		this.drawWireLine([r.getRight(),r.getBottom()], [r.getLeft(),r.getBottom()]);
+		this.drawWireLine([r.getLeft(),r.getBottom()], [r.getLeft(),r.getTop()]);
 	}
 
 	addLabel(point, label) {
@@ -266,11 +297,11 @@ export default class Schematic {
 		libSymbolsExpr.push(librarySymbol.getQualifiedSexpr());
 	}
 
-	async use(...symbols) {
+	/*async use(...symbols) {
 		symbols=symbols.flat(Infinity);
 		for (let symbol of symbols)
 			await this.ensureLibSymbol(symbol);
-	}
+	}*/
 
 	declare(ref, options) {
 		let entity=this.entities.find(e=>e.getType()=="symbol" && e.getReference()==ref);
@@ -418,6 +449,10 @@ export default class Schematic {
 		src+=`}\n`;
 
 		return src;
+	}
+
+	removeEntity(removable) {
+		this.entities=this.entities.filter(e=>e!=removable);
 	}
 }
 

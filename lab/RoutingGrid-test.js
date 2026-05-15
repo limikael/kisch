@@ -1,4 +1,4 @@
-import RoutingGrid from "../src/RoutingGrid.js";
+import RoutingGrid from "../src/utils/RoutingGrid.js";
 
 let grid=new RoutingGrid();
 grid.drawLine(0,0,29,0);

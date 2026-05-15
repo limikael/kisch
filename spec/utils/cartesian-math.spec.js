@@ -1,4 +1,4 @@
-import {Rect} from "../src/cartesian-math.js";
+import {Rect} from "../../src/utils/cartesian-math.js";
 
 describe("cartesian-math",()=>{
 	it("works with rect",()=>{

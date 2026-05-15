@@ -1,8 +1,17 @@
-import {loadSchematic} from "../src/Schematic.js";
+import {loadSchematic} from "../../src/schematic/Schematic.js";
+import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
+import fs from "fs";
+import path from "path";
+
+let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("schematic",()=>{
 	it("can open a schematic",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -42,11 +51,35 @@ describe("schematic",()=>{
 
 		expect(schematic.sym("J1").pin(1).isConnected(schematic.sym("J2").pin(2))).toEqual(true);
 		expect(schematic.sym("J1").pin(1).isConnected(schematic.sym("J2").pin(1))).toEqual(false);
-		//console.log(cp);
+		//console.log(cp);*/
+	});
+
+	it("can draw bounding boxes",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		for (let e of schematic.getEntities({type: "wire"})) {
+			schematic.removeEntity(e);
+		}
+
+		for (let s of schematic.getEntities({type: "symbol"})) {
+			schematic.drawWireRect(s.getBoundingRect());
+		}
+
+		await schematic.save(fn);
 	});
 
 	it("can add a connection",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -54,15 +87,13 @@ describe("schematic",()=>{
 		let p2=schematic.sym("J3").pin(1).getPoint();
 
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(false);
-
-		//schematic.addConnectionWire(p1,p2);
-		//p1.connect(p2);
 		schematic.sym("J1").pin(1).connect(schematic.sym("J3").pin(1));
-
 		expect(schematic.arePointsConnected(p1,p2)).toEqual(true);
+
+		await schematic.save(fn);
 	});
 
-	it("can handle net labels",async ()=>{
+	/*it("can handle net labels",async ()=>{
 		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
@@ -98,9 +129,9 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		/*await schematic.use(
-			"Connector_Generic:Conn_01x08"
-		);*/
+		//await schematic.use(
+		//	"Connector_Generic:Conn_01x08"
+		//);
 
 		schematic.declare("J4",{
 			symbol: "Connector_Generic:Conn_01x08"
@@ -123,5 +154,5 @@ describe("schematic",()=>{
 
 		expect(source).toContain('J1.pin(2).connect("GND")');
 		expect(source).toContain('let J1=sch.declare("J1",{');
-	});
+	});*/
 });

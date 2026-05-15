@@ -1,10 +1,19 @@
-import {arrayGetMinIndex, arrayGetMaxIndex} from "../src/js-util.js";
+import {arrayGetMinIndex, arrayGetMaxIndex} from "./js-util.js";
 import {collapsePath, manhattanDist} from "./grid-util.js";
 import {astar} from "./astar.js";
 
 export default class RoutingGrid {
-	constructor() {
+	constructor({spacing}={spacing: 1}) {
 		this.grid=[];
+		this.spacing=spacing;
+	}
+
+	snap(v) {
+		return Math.round(v/this.spacing);
+	}
+
+	unsnap(v) {
+		return v*this.spacing;
 	}
 
 	getGrid(x, y) {
@@ -26,12 +35,20 @@ export default class RoutingGrid {
 	}
 
 	drawHorizontalLine(x, y, x2) {
+		x=this.snap(x);
+		y=this.snap(y);
+		x2=this.snap(x2);
+
 		if (x2<x) { let v=x; x=x2; x2=v; }
 		for (let i=x; i<x2; i++)
 			this.updateGrid(i,y,{h: true});
 	}
 
 	drawVerticalLine(x, y, y2) {
+		x=this.snap(x);
+		y=this.snap(y);
+		y2=this.snap(y2);
+
 		if (y2<y) { let v=y; y=y2; y2=v; }
 		for (let i=y; i<y2; i++)
 			this.updateGrid(x,i,{v: true});
@@ -60,6 +77,11 @@ export default class RoutingGrid {
 	}
 
 	drawRect(x1, y1, x2, y2) {
+		x1=this.snap(x1);
+		y1=this.snap(y1);
+		x2=this.snap(x2);
+		y2=this.snap(y2);
+
 		if (x2<x1) { let v=x1; x1=x2; x2=v; }
 		if (y2<y1) { let v=y1; y1=y2; y2=v; }
 		for (let y=y1; y<=y2; y++) {
@@ -150,6 +172,11 @@ export default class RoutingGrid {
 			return 2;
 		}
 
+		x1=this.snap(x1);
+		y1=this.snap(y1);
+		x2=this.snap(x2);
+		y2=this.snap(y2);
+
 		let steps=astar({
 			start: {x: x1, y: y1},
 			neighbours,
@@ -160,6 +187,6 @@ export default class RoutingGrid {
 			stats
 		});
 
-		return collapsePath(steps);
+		return collapsePath(steps).map(p=>({x: this.unsnap(p.x), y: this.unsnap(p.y)}));
 	}
 }

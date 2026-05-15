@@ -1,6 +1,12 @@
 export class Point extends Array {
 	constructor(...a) {
-		if (a)
+		if (a.length==1 &&
+				!Array.isArray(a[0]) && 
+				Object.hasOwn(a[0],"x") && 
+				Object.hasOwn(a[0],"y"))
+			super(a[0].x,a[0].y);
+
+		else if (a)
 			super(...[a].flat(Infinity));
 
 		else

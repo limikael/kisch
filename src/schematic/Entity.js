@@ -1,6 +1,5 @@
-import {Point} from "./cartesian-math.js";
-import {sym, symName, sexpCallName} from "./sexp.js";
-import {Rect} from "./cartesian-math.js";
+import {Point, Rect} from "../utils/cartesian-math.js";
+import {sym, symName, sexpCallName} from "../utils/sexp.js";
 
 class EntityPin {
 	constructor(sexpr, entity) {
@@ -235,6 +234,7 @@ export default class Entity {
 
 		//console.log(this.librarySymbol);
 		let r=this.librarySymbol.getBoundingRect();
+		//console.log(r);
 		let p=Point.from(this.getAt());
 
 		return new Rect(p.add(r.corner),r.size);

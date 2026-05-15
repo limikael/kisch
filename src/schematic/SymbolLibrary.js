@@ -1,7 +1,7 @@
 import fs, {promises as fsp} from "fs";
 import path from "path";
 import LibrarySymbol from "./LibrarySymbol.js";
-import {sexpParse, sym, isSym, symEq} from "../src/sexp.js";
+import {sexpParse, sym, isSym, symEq} from "../utils/sexp.js";
 
 /**
  * SymbolLibrary represents a directory of .kicad_sym files.

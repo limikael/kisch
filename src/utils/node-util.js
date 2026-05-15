@@ -1,4 +1,5 @@
 import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'url';
 
 export function runCommand(cmd, args = []) {
     return new Promise((resolve, reject) => {
@@ -14,4 +15,8 @@ export function runCommand(cmd, args = []) {
 
         child.on('error', reject);
     });
+}
+
+export function dirnameFromImportMeta(meta) {
+    return fileURLToPath(new URL('.', meta.url));
 }

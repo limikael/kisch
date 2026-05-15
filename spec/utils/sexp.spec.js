@@ -1,4 +1,4 @@
-import {sexpParse, sexpStringify}from "../src/sexp.js";
+import {sexpParse, sexpStringify}from "../../src/utils/sexp.js";
 
 describe("sexpr",()=>{
 	it("can parse and stringify s-expressions",()=>{

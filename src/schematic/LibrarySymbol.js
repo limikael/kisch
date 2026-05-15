@@ -1,5 +1,5 @@
-import {sym, isSym, symEq, symName, sexpStringify, sexpCallName} from "./sexp.js";
-import {Rect} from "./cartesian-math.js";
+import {sym, isSym, symEq, symName, sexpStringify, sexpCallName} from "../utils/sexp.js";
+import {Rect} from "../utils/cartesian-math.js";
 
 export default class LibrarySymbol {
     constructor(sexpr, qualifiedName) {
@@ -61,6 +61,9 @@ export default class LibrarySymbol {
             if (sexpCallName(x)=="rectangle") {
                 let start=x.find(x=>sexpCallName(x)=="start").slice(1);
                 let end=x.find(x=>sexpCallName(x)=="end").slice(1);
+
+                start[1]=-start[1];
+                end[1]=-end[1];
 
                 /*console.log(start);
                 console.log(end);*/
