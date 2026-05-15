@@ -208,10 +208,6 @@ export default class Schematic {
 			grid.drawLine(p1[0],p1[1],p2[0],p2[1]);
 		}
 
-		/*for (let p of this.getConnectionPoints()) {
-			grid.drawPoint(p[0],p[1]);
-		}*/
-
 		grid.clearPoint(fromPoint[0],fromPoint[1]);
 		grid.clearPoint(toPoint[0],toPoint[1]);
 
