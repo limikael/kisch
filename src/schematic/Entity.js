@@ -41,7 +41,7 @@ class EntityPin {
 
 	isConnected(p) {
 		if (typeof p=="string") {
-			for (let e of this.entity.schematic.getLabelEntities(p)) {
+			for (let e of this.entity.schematic.getEntities({label: p})) {
 				let p=e.getConnectionPoints()[0];
 				if (this.entity.schematic.arePointsConnected(this.getPoint(),p))
 					return true;

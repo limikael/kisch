@@ -65,8 +65,14 @@ export default class Schematic {
 
 	// filter: type connectionPoint label
 	getEntities(filter={}) {
+		if (filter.label)
+			filter.type="label";
+
 		return this.entities.filter(e=>{
 			if (filter.type && e.getType()!=filter.type)
+				return false;
+
+			if (filter.label && e.getLabel()!=filter.label)
 				return false;
 
 			if (filter.connectionPoint) {
@@ -83,36 +89,6 @@ export default class Schematic {
 			return true;
 		});
 	}
-
-	getLabelEntities(label) {
-		let entities=[];
-
-		for (let e of this.entities)
-			if (e.getType()=="label" && e.getLabel()==label)
-				entities.push(e);
-
-		return entities;
-	}
-
-	/*getSymbolEntities() {
-		let entities=[];
-
-		for (let e of this.entities)
-			if (e.getType()=="symbol")
-				entities.push(e);
-
-		return entities;
-	}*/
-
-	/*getNets() {
-		let nets=this.getEntities()
-			.filter(e=>e.getType()=="label")
-			.map(e=>e.getLabel());
-
-		nets=arrayUnique(nets);
-
-		return nets;
-	}*/
 
 	sym(ref) {
 		for (let e of this.entities)

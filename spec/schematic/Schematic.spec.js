@@ -19,11 +19,13 @@ describe("schematic",()=>{
 
 		//console.log(schematic.getEntities().length);
 
-		expect(schematic.getEntities().length).toEqual(12);
+		expect(schematic.getEntities({type: "symbol"}).length).toEqual(4);
+		expect(schematic.getEntities({type: "wire"}).length).toEqual(6);
+		expect(schematic.getEntities({type: "label"}).length).toEqual(3);
 		//console.log(schematic);		
 		for (let entity of schematic.getEntities()) {
-			//console.log(entity.getReference());
 			//console.log(entity.getType(),": ",entity.getConnectionPoints());
+			//console.log(entity.getReference());
 		}
 
 		let j1=schematic.sym("J1");
@@ -38,7 +40,7 @@ describe("schematic",()=>{
 		let p1=j1.pin(1).getPoint();
 		expect(p1).toEqual([ 81.28, 71.12 ]);
 
-		let entities=schematic.getEntitiesByConnectionPoint(p1);
+		let entities=schematic.getEntities({connectionPoint: p1});
 		expect(entities.length).toEqual(2);
 		//console.log(entities);
 		//expect().toEqual();

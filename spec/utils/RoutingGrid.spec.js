@@ -10,14 +10,17 @@ describe("RoutingGrid",()=>{
 		grid.drawRect(2,2,5,5);
 
 		let stats={};
-		let p=grid.findPath(2,1,3,7,stats);
+		let p=grid.findPath({start: [{x:2,y:1}],goal: [{x:3,y:7}],stats});
 		grid.drawLines(p);
 
 		//console.log("t: "+grid.getTop()+" b: "+grid.getBottom()+" l: "+grid.getLeft()+" r: "+grid.getRight());
 
 		grid.drawRect(9,6,11,8);
-		grid.drawLines(grid.findPath(5,7,10,5));
-		console.log(grid.toGridString());
+		grid.drawLines(grid.findPath({
+			start: [{x:5,y:7}],
+			goal: [{x:10,y:5}]
+		}));
+		//console.log(grid.toGridString());
 		//console.log("steps: "+stats.steps);
 		//console.log(p);
 
@@ -37,7 +40,7 @@ describe("RoutingGrid",()=>{
 		});
 		grid.drawLines(p);
 
-		console.log(grid.toGridString());
+		//console.log(grid.toGridString());
 	});
 
 	it("can snap",()=>{
@@ -49,13 +52,17 @@ describe("RoutingGrid",()=>{
 		grid.drawRect(2*2.54,2*2.54,5*2.54,5*2.54);
 
 		let stats={};
-		let p=grid.findPath(2*2.54,1*2.54,3*2.54,7*2.54,stats);
+		let p=grid.findPath({
+			start: [{x:2*2.54, y:1*2.54}],
+			goal: [{x:3*2.54, y:7*2.54}],
+			stats,
+		});
 		grid.drawLines(p);
 		//console.log(grid.toGridString());
 
 		//console.log("t: "+grid.getTop()+" b: "+grid.getBottom()+" l: "+grid.getLeft()+" r: "+grid.getRight());
 		//console.log(grid.toGridString());
-		//console.log("steps: "+stats.steps);
+		console.log("steps: "+stats.steps);
 		//console.log(p);
 
 		expect(p).toEqual([
