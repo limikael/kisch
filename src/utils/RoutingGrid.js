@@ -199,13 +199,18 @@ export default class RoutingGrid {
 			return 2;
 		}
 
-		let heuristic=(g)=>{
-			return 0;
-
-			if (g=="start")
+		let heuristic=(node)=>{
+			if (node=="start")
 				return 0;
 
-			return manhattanDist(g.x,g.y,goal.x,goal.y)
+			let closest;
+			for (let g of goal) {
+				let d=manhattanDist(node.x,node.y,g.x,g.y);
+				if (closest===undefined || d<closest)
+					closest=d;
+			}
+
+			return closest;
 		}
 
 		let key=(g)=>{

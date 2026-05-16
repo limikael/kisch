@@ -199,7 +199,7 @@ export default class Schematic {
 			stats
 		});
 
-		console.log("steps: "+stats.steps);
+		//console.log("steps: "+stats.steps);
 
 		this.addJunctionIfNeeded(new Point(points[0]));
 		this.addJunctionIfNeeded(new Point(points[points.length-1]));
