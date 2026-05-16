@@ -266,10 +266,13 @@ export default class Entity {
 
 		//console.log(this.librarySymbol);
 		let r=this.librarySymbol.getBoundingRect();
+		let corner=r.corner.rotateDegrees(-this.getRotation());
+		let size=r.size.rotateDegrees(-this.getRotation());
+
 		//console.log(r);
 		let p=Point.from(this.getAt());
 
-		return new Rect(p.add(r.corner),r.size);
+		return new Rect(p.add(corner),size);
 	}
 
 	getLibrarySymbol() {

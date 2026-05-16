@@ -196,7 +196,7 @@ export default class RoutingGrid {
 			if (g1.from==g2.from)
 				return 1;
 
-			return 2;
+			return 20;
 		}
 
 		let heuristic=(node)=>{
