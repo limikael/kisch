@@ -63,6 +63,7 @@ export default class Schematic {
 		await fsp.writeFile(fn,content);
 	}
 
+	// filter: type connectionPoint label
 	getEntities(filter={}) {
 		return this.entities.filter(e=>{
 			if (filter.type && e.getType()!=filter.type)
@@ -83,24 +84,6 @@ export default class Schematic {
 		});
 	}
 
-	sym(ref) {
-		for (let e of this.entities)
-			if (e.getType()=="symbol" && e.getReference()==ref)
-				return e;
-
-		throw new Error("Undefined symbol reference: "+ref);
-	}
-
-	getSymbolEntities() {
-		let entities=[];
-
-		for (let e of this.entities)
-			if (e.getType()=="symbol")
-				entities.push(e);
-
-		return entities;
-	}
-
 	getLabelEntities(label) {
 		let entities=[];
 
@@ -111,6 +94,16 @@ export default class Schematic {
 		return entities;
 	}
 
+	/*getSymbolEntities() {
+		let entities=[];
+
+		for (let e of this.entities)
+			if (e.getType()=="symbol")
+				entities.push(e);
+
+		return entities;
+	}*/
+
 	/*getNets() {
 		let nets=this.getEntities()
 			.filter(e=>e.getType()=="label")
@@ -120,6 +113,14 @@ export default class Schematic {
 
 		return nets;
 	}*/
+
+	sym(ref) {
+		for (let e of this.entities)
+			if (e.getType()=="symbol" && e.getReference()==ref)
+				return e;
+
+		throw new Error("Undefined symbol reference: "+ref);
+	}
 
 	getConnectionPoints() {
 		let points=[];
@@ -403,7 +404,7 @@ export default class Schematic {
 		let librarySymbol=this.symbolLibrary.loadLibrarySymbolSync(symbol);
 
 		//let librarySymbol=await this.symbolLibrary.loadLibrarySymbol(symbol);
-		let rects=this.getSymbolEntities().map(e=>e.getBoundingRect().pad(2.54*4));
+		let rects=this.getEntities({type: "symbol"}).map(e=>e.getBoundingRect().pad(2.54*4));
 
 		let center=new Point(101.6,101.6);
 		if (rects.length)

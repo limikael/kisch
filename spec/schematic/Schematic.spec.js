@@ -110,22 +110,9 @@ describe("schematic",()=>{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		/*let p=schematic.getConnectionPath(
-			schematic.sym("J2").pin(2).getPoint(),
-			schematic.sym("J1").pin(1).getPoint()
-		);
-
-		expect(p[0].containsPoint([73.66,68.58])).toEqual(false);
-		expect(p[1].containsPoint([73.66,68.58])).toEqual(true);
-		expect(p[2].containsPoint([73.66,68.58])).toEqual(false);*/
-
-		//schematic.drawWireLine()
-		//schematic.drawWirePoint(new Point(73.66,68.58));
-
-		/*schematic.drawWireLine([50.8,50.8],[50.8,50.8+2.54*5]);
-		schematic.drawWireLine([50.8,50.8],[50.8,50.8-2.54*5]);*/
-		schematic.drawWireLine([50.8,50.8-2.54*5],[50.8,50.8+2.54*5]);
-		//schematic.drawWireLine([50.8,50.8],[50.8+2.54*5,50.8]);
+		schematic.drawWireLine([50.8,50.8],[50.8,50.8+2.54*5]);
+		schematic.drawWireLine([50.8,50.8],[50.8,50.8-2.54*5]);
+		schematic.drawWireLine([50.8,50.8],[50.8+2.54*5,50.8]);
 
 		schematic.addJunction([50.8,50.8]);
 
@@ -154,13 +141,17 @@ describe("schematic",()=>{
 		await schematic.save(fn);
 	});
 
-	/*it("can handle net labels",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+	it("can handle net labels",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
 		let p1=schematic.sym("J2").pin(1).getPoint();
-		let entities=schematic.getEntitiesByConnectionPoint(p1);
+		let entities=schematic.getEntities({connectionPoint: p1});
 		//console.log(entities);
 
 		expect(entities.length).toEqual(2);
@@ -173,39 +164,53 @@ describe("schematic",()=>{
 		//console.log(p1);
 
 		schematic.sym("J3").pin(1).connect("GND");
-		//expect(schematic.sym("J3").pin(1).isConnected("GND")).toEqual(false);
+		expect(schematic.sym("J3").pin(1).isConnected("GND")).toEqual(true);
+
+		await schematic.save(fn);
 	});
 
 	it("can get rectangles",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		let r=schematic.sym("J3").getBoundingRect(); //pin(1).connect("GND");
+		let r=schematic.sym("J3").getBoundingRect();
 		//console.log(r);
 	});
 
 	it("can declare symbols",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
-		//await schematic.use(
-		//	"Connector_Generic:Conn_01x08"
-		//);
-
-		schematic.declare("J4",{
+		schematic.declare("J5",{
 			symbol: "Connector_Generic:Conn_01x08"
 		});
 
-		schematic.sym("J4").pin(1).connect("GND");
-		schematic.sym("J4").pin(7).connect(schematic.sym("J3").pin(3));
+		schematic.sym("J5").pin(1).connect("GND");
+		schematic.sym("J5").pin(7).connect(schematic.sym("J3").pin(3));
 
-		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(3))).toEqual(true);
-		expect(schematic.sym("J4").pin(7).isConnected(schematic.sym("J3").pin(2))).toEqual(false);
+		expect(schematic.sym("J5").pin(7).isConnected(schematic.sym("J3").pin(3))).toEqual(true);
+		expect(schematic.sym("J5").pin(7).isConnected(schematic.sym("J3").pin(2))).toEqual(false);
+
+		for (let i=6; i<26; i++) {
+			schematic.declare("J"+i,{
+				symbol: "Connector_Generic:Conn_01x02"
+			});
+		}
+
+		await schematic.save(fn);
 	});
 
-	it("can generate source",async ()=>{
+	/*it("can generate source",async ()=>{
 		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
