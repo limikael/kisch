@@ -2,7 +2,6 @@ import SymbolLibrary from "./SymbolLibrary.js";
 import fs, {promises as fsp} from "fs";
 import Entity from "./Entity.js";
 import {Point, pointKey, Rect} from "../utils/cartesian-math.js";
-//import {findGridPath} from "../utils/manhattan-router.js";
 import RoutingGrid from "../utils/RoutingGrid.js";
 import {isSym, sym, sexpParse, sexpStringify, symName, sexpCallName} from "../utils/sexp.js";
 import {placeRect} from "../utils/place-rect.js";
@@ -70,9 +69,10 @@ export default class Schematic {
 				return false;
 
 			if (filter.connectonPoint) {
+				let cp=Point.from(filter.connectonPoint);
 				let found=false;
 				for (let p of e.getConnectionPoints())
-					if (filter.connectonPoint.equals(p))
+					if (cp.equals(p))
 						found=true;
 
 				if (!found)
@@ -111,7 +111,7 @@ export default class Schematic {
 		return entities;
 	}
 
-	getNets() {
+	/*getNets() {
 		let nets=this.getEntities()
 			.filter(e=>e.getType()=="label")
 			.map(e=>e.getLabel());
@@ -119,20 +119,7 @@ export default class Schematic {
 		nets=arrayUnique(nets);
 
 		return nets;
-	}
-
-	getEntitiesByConnectionPoint(connectonPoint) {
-		connectonPoint=Point.from(connectonPoint);
-		let entities=[];
-
-		for (let e of this.entities) {
-			for (let p of e.getConnectionPoints())
-				if (connectonPoint.equals(p))
-					entities.push(e)
-		}
-
-		return entities;
-	}
+	}*/
 
 	getConnectionPoints() {
 		let points=[];
@@ -170,8 +157,8 @@ export default class Schematic {
 			if (visitedPoints.has(key)) continue;
 			visitedPoints.add(key);
 
-			// find all entities touching this point
-			const entities = this.getEntitiesByConnectionPoint(point).filter(e=>e.getType()=="wire");
+			// find all wires touching this point
+			const entities=this.getEntities({type: "wire", connectonPoint: point});
 
 			for (const entity of entities) {
 				const connectionPoints = entity.getConnectionPoints();
