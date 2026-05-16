@@ -116,7 +116,7 @@ export default class Entity {
 		this.pins=[];
 
 		this.type=symName(this.sexpr[0]);
-		if (!["symbol","wire","label"].includes(this.type))
+		if (!["symbol","wire","label","junction"].includes(this.type))
 			throw new Error("Unknown entity: "+this.type);
 
 		for (let a of this.sexpr)
@@ -309,5 +309,33 @@ export default class Entity {
 
 		for (let i=0; i<this.pins.length; i++)
 			this.pins[i].connect(pins[i]);
+	}
+
+	containsPoint(p) {
+		function isNumberInRangeInclusive(num, a, b) {
+		    return ((num >= Math.min(a, b)) && (num <= Math.max(a, b)));
+		}
+
+		if (this.getType()!="wire")
+			throw new Error("Only a wire can contain points");
+
+		p=Point.from(p);
+		let cp=this.getConnectionPoints();
+		if (cp[0][0]==cp[1][0]) { // vertical
+			if (p[0]!=cp[0][0])
+				return false;
+
+			return isNumberInRangeInclusive(p[1],cp[0][1],cp[1][1]);
+		}
+
+		else if (cp[0][1]==cp[1][1]) { // horizontal
+			if (p[1]!=cp[0][1])
+				return false;
+
+			return isNumberInRangeInclusive(p[0],cp[0][0],cp[1][0]);
+		}
+
+		else 
+			throw new Error("wire is not horizontal or vertical");
 	}
 }

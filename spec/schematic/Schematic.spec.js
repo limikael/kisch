@@ -1,6 +1,7 @@
 import {loadSchematic} from "../../src/schematic/Schematic.js";
 import {dirnameFromImportMeta} from "../../src/utils/node-util.js";
 import {Rect, Point} from "../../src/utils/cartesian-math.js";
+import {sexpStringify} from "../../src/utils/sexp.js";
 import fs from "fs";
 import path from "path";
 
@@ -96,6 +97,37 @@ describe("schematic",()=>{
 		let points=schematic.getConnectedWirePoints(p);
 		for (let p of points)
 			schematic.drawWirePoint(new Point(p));
+
+		await schematic.save(fn);
+	});
+
+	it("can add a junction",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+		let schematic=await loadSchematic(fn,{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		/*let p=schematic.getConnectionPath(
+			schematic.sym("J2").pin(2).getPoint(),
+			schematic.sym("J1").pin(1).getPoint()
+		);
+
+		expect(p[0].containsPoint([73.66,68.58])).toEqual(false);
+		expect(p[1].containsPoint([73.66,68.58])).toEqual(true);
+		expect(p[2].containsPoint([73.66,68.58])).toEqual(false);*/
+
+		//schematic.drawWireLine()
+		//schematic.drawWirePoint(new Point(73.66,68.58));
+
+		/*schematic.drawWireLine([50.8,50.8],[50.8,50.8+2.54*5]);
+		schematic.drawWireLine([50.8,50.8],[50.8,50.8-2.54*5]);*/
+		schematic.drawWireLine([50.8,50.8-2.54*5],[50.8,50.8+2.54*5]);
+		//schematic.drawWireLine([50.8,50.8],[50.8+2.54*5,50.8]);
+
+		schematic.addJunction([50.8,50.8]);
 
 		await schematic.save(fn);
 	});

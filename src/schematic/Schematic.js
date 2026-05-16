@@ -68,8 +68,8 @@ export default class Schematic {
 			if (filter.type && e.getType()!=filter.type)
 				return false;
 
-			if (filter.connectonPoint) {
-				let cp=Point.from(filter.connectonPoint);
+			if (filter.connectionPoint) {
+				let cp=Point.from(filter.connectionPoint);
 				let found=false;
 				for (let p of e.getConnectionPoints())
 					if (cp.equals(p))
@@ -158,7 +158,7 @@ export default class Schematic {
 			visitedPoints.add(key);
 
 			// find all wires touching this point
-			const entities=this.getEntities({type: "wire", connectonPoint: point});
+			const entities=this.getEntities({type: "wire", connectionPoint: point});
 
 			for (const entity of entities) {
 				const connectionPoints = entity.getConnectionPoints();
@@ -216,6 +216,8 @@ export default class Schematic {
 			goal: goalPoints.map(p=>({x: p[0], y: p[1]})),
 		});
 
+		this.addJunctionIfNeeded(new Point(points[0]));
+		this.addJunctionIfNeeded(new Point(points[points.length-1]));
 
 		for (let i=0; i<points.length-1; i++) {
 			let p1=new Point(points[i]), p2=new Point(points[i+1]);
@@ -230,14 +232,50 @@ export default class Schematic {
 		}
 	}
 
-	getConnectedWires(connectonPoint) {
-		let points=[Point.from(connectonPoint)];
+	addJunctionIfNeeded(p) {
+		p=new Point(p);
+		if (this.getEntities({connectionPoint: p, type: "symbol"}).length)
+			return;
+
+		this.splitWire(p);
+		this.addJunction(p);
+	}
+
+	splitWire(p) {
+		for (let e of this.getEntities({type: "wire"})) {
+			if (e.containsPoint(p)) {
+				let cp=e.getConnectionPoints();
+				this.drawWireLine(cp[0],p);
+				this.drawWireLine(p,cp[1]);
+				this.removeEntity(e);
+				//console.log("found it!!");
+				return;
+			}
+		}
+
+		throw new Error("No wire to split");
+	}
+
+	addJunction(p) {
+		let expr=[sym("junction"),
+			[sym("at"),p[0],p[1]],
+			[sym("diameter"),0],
+			[sym("color"),0,0,0,0],
+			[sym("uuid"),crypto.randomUUID()]
+		];
+
+		let e=new Entity(expr,this);
+		this.entities.push(e);
+	}
+
+	getConnectedWires(connectionPoint) {
+		let points=[Point.from(connectionPoint)];
 		let entities=[];
 
 		while (points.length) {
 			let p=Point.from(points.pop());
 			//console.log(p);
-			for (let e of this.getEntities({type: "wire", connectonPoint: p})) {
+			for (let e of this.getEntities({type: "wire", connectionPoint: p})) {
 				if (!entities.includes(e)) {
 					entities.push(e);
 					points.push(...e.getConnectionPoints());
@@ -248,8 +286,8 @@ export default class Schematic {
 		return entities;
 	}
 
-	getConnectedWirePoints(connectonPoint) {
-		let wires=this.getConnectedWires(connectonPoint);
+	getConnectedWirePoints(connectionPoint) {
+		let wires=this.getConnectedWires(connectionPoint);
 		let grid=new RoutingGrid({spacing: 1.27});
 		for (let w of wires) {
 			let p=w.getConnectionPoints();
@@ -277,6 +315,7 @@ export default class Schematic {
 	}
 
 	drawWirePoint(p) {
+		p=new Point(p);
 		this.drawWireRect(new Rect(p.sub([0.25,0.25]),[0.5,0.5]));
 	}
 
