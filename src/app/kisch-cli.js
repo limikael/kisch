@@ -42,6 +42,7 @@ program
     .option("-e, --emit <script.js>", "Emit script based on schematic.")
     .option("-q, --quiet", "No output, except for errors.")
     .option("-a, --append", "Append mode: don't remove undeclared.")
+    .option("--bounding-boxes", "Remove wires and draw bounding boxes instead (only for debug!).")
     //.option("-v, --verbose", "Print detailed execution info")
     .option(
         "-D, --define <key=value>", 
@@ -115,6 +116,22 @@ try {
 
         if (!options.append)
             schematic.removeUndeclared();
+    }
+
+    if (options.boundingBoxes) {
+        cons.info("Drawing bounding boxes...");
+        for (let e of schematic.getEntities({type: "wire"})) {
+            schematic.removeEntity(e);
+        }
+
+        for (let s of schematic.getEntities({type: "symbol"})) {
+            schematic.drawWireRect(s.getBoundingRect());
+            for (let p of s.getPins()) {
+                schematic.drawWirePoint(p.getPoint());
+                schematic.drawWirePoint(p.getLegPoint());
+                schematic.drawWireLine(p.getPoint(),p.getLegPoint());
+            }
+        }
     }
 
     if (options.emit) {

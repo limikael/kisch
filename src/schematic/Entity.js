@@ -16,12 +16,15 @@ class EntityPin {
 		let librarySymbolPin=librarySymbol.getPin(Number(this.getNum()));
 		let pinAt=Point.from(librarySymbolPin.at);
 		let symbolAt=this.entity.getAt();
+		let symbolRot=this.entity.getRotation();
 		pinAt[1]=-pinAt[1];
 
-		this.point=Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
+		//this.point=Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolAt[2]));
+		//this.point=Point.from(symbolAt).add(pinAt.rotateDegrees(-this.entity.getRotation()));
+		this.point=Point.from(symbolAt).add(pinAt.rotateDegrees(-symbolRot));
 
 		let leg=new Point(librarySymbolPin.length,0);
-		leg=leg.rotateDegrees(librarySymbolPin.rotation);
+		leg=leg.rotateDegrees(-(librarySymbolPin.rotation+symbolRot));
 		this.legPoint=this.point.add(leg);
 	}
 
@@ -127,6 +130,10 @@ export default class Entity {
 		for (let a of this.sexpr)
 			if (sexpCallName(a)=="pin")
 				this.pins.push(new EntityPin(a,this));
+	}
+
+	getRotation() {
+		return this.getAt()[2];
 	}
 
 	getPins() {
