@@ -212,8 +212,12 @@ describe("schematic",()=>{
 		await schematic.save(fn);
 	});
 
-	/*it("can generate source",async ()=>{
-		let schematic=await loadSchematic("spec/kitest.kicad_sch",{
+	it("can generate source",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+		let fn=path.join(__dirname,"../kitest/kitest.kicad_sch");
+
+		let schematic=await loadSchematic(fn,{
 			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
 		});
 
@@ -222,5 +226,5 @@ describe("schematic",()=>{
 
 		expect(source).toContain('J1.pin(2).connect("GND")');
 		expect(source).toContain('let J1=sch.declare("J1",{');
-	});*/
+	});
 });

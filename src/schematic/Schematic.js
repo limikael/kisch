@@ -462,7 +462,7 @@ export default class Schematic {
 	getSource() {
 		let src="";
 		src+=`export default async function(sch) {\n`;
-		for (let e of this.getSymbolEntities()) {
+		for (let e of this.getEntities({type: "symbol"})) {
 			src+=`    let ${e.getReference()}=sch.declare("${e.getReference()}",{\n`;
 			src+=`        "symbol": "${e.getLibId()}",\n`
 			src+=`        "footprint": "${e.getFootprint()}",\n`
@@ -470,7 +470,7 @@ export default class Schematic {
 		}
 
 		let allConnectionPoints=this.getConnectionPoints();
-		for (let e of this.getSymbolEntities()) {
+		for (let e of this.getEntities({type: "symbol"})) {
 			for (let pin of e.pins) {
 				for (let c of pin.getConnections()) {
 					if (typeof c=="string") {
