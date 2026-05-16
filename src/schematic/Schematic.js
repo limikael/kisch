@@ -90,6 +90,10 @@ export default class Schematic {
 		});
 	}
 
+	getNets() {
+		return arrayUnique(this.getEntities({type: "label"}).map(e=>e.getLabel()));
+	}
+
 	sym(ref) {
 		for (let e of this.entities)
 			if (e.getType()=="symbol" && e.getReference()==ref)

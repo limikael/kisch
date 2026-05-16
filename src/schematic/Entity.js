@@ -96,7 +96,7 @@ class EntityPin {
 				connections.push(net);
 		}
 
-		for (let e of this.entity.schematic.getSymbolEntities()) {
+		for (let e of this.entity.schematic.getEntities({type: "symbol"})) {
 			if (e==this.entity)
 				continue;
 
