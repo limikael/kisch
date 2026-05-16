@@ -169,6 +169,8 @@ export default class Schematic {
 	}
 
 	addConnectionWire(fromPoint, toPoint) {
+		//console.log("add connection...");
+
 		let grid=new RoutingGrid({spacing: 1.27});
 		for (let sym of this.getEntities({type: "symbol"})) {
 			let r=sym.getBoundingRect();
@@ -230,8 +232,10 @@ export default class Schematic {
 		for (let e of this.getEntities({type: "wire"})) {
 			if (e.containsPoint(p)) {
 				let cp=e.getConnectionPoints();
-				this.drawWireLine(cp[0],p);
-				this.drawWireLine(p,cp[1]);
+				let seg1=this.drawWireLine(cp[0],p);
+				let seg2=this.drawWireLine(p,cp[1]);
+				seg1.declared=e.declared;
+				seg2.declared=e.declared;
 				this.removeEntity(e);
 				//console.log("found it!!");
 				return;
@@ -289,7 +293,10 @@ export default class Schematic {
 			[sym("uuid"),crypto.randomUUID()]
 		];
 
-		this.entities.push(new Entity(expr,this));
+		let e=new Entity(expr,this);
+		this.entities.push(e);
+
+		return e;
 	}
 
 	drawWireRect(r) {
@@ -463,6 +470,9 @@ export default class Schematic {
 
 	removeUndeclared() {
 		this.entities=this.entities.filter(entity=>{
+			if (entity.type=="junction")
+				return true;
+
 			return entity.declared;
 		});
 	}

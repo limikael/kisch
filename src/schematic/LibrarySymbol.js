@@ -87,8 +87,8 @@ export default class LibrarySymbol {
                                 if (!rect)
                                     rect=new Rect(point,[0,0]);
 
-                                console.log("rect",rect);
-                                console.log("point",point);
+                                //console.log("rect",rect);
+                                //console.log("point",point);
 
                                 rect=rect.includePoint(point);
                             }

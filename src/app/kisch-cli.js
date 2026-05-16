@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import {program} from "commander";
-import Schematic, {loadSchematic, createSchematic} from "./Schematic.js";
+import Schematic, {loadSchematic, createSchematic} from "../schematic/Schematic.js";
 import path from "node:path";
-import pkg from "../package.json" with { type: "json" };
-import {DeclaredError} from "./js-util.js";
+import pkg from "../../package.json" with { type: "json" };
+import {DeclaredError} from "../utils/js-util.js";
 import fs, {promises as fsp} from "fs";
-import {compoundSymbol} from "./CompoundSymbol.js";
+import {compoundSymbol} from "../schematic/CompoundSymbol.js";
 
 let HELP_TEXT=`
 Examples:

@@ -61,7 +61,7 @@ class EntityPin {
 
 		if (this.isConnected(p)) {
 			if (typeof p=="string") {
-				for (let e of this.entity.schematic.getLabelEntities(p)) {
+				for (let e of this.entity.schematic.getEntities({label: p})) {
 					let p=e.getConnectionPoints()[0];
 					if (this.entity.schematic.arePointsConnected(this.getPoint(),p)) {
 						e.declared=true;
@@ -83,9 +83,14 @@ class EntityPin {
 		}
 
 		else {
+			//console.log("connecting wire",this.toString(),"->",p.toString());
 			this.entity.schematic.addConnectionWire(this.getPoint(),p.getPoint());
 			this.entity.schematic.markConnectionDeclared(this.getPoint(),p.getPoint());
 		}
+	}
+
+	toString() {
+		return this.entity.getReference()+":"+this.getNum();
 	}
 
 	getConnections() {

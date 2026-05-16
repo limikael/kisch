@@ -10,7 +10,7 @@
     "test": "jasmine"
   },
   "bin": {
-    "kisch": "src/kisch-cli.js"
+    "kisch": "src/app/kisch-cli.js"
   },
   "keywords": [],
   "author": "",
