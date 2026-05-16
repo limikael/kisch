@@ -192,10 +192,14 @@ export default class Schematic {
 		for (let p of [...startPoints,...goalPoints])
 			grid.clearPoint(p[0],p[1]);
 
+		let stats={};
 		let points=grid.findPath({
 			start: startPoints.map(p=>({x: p[0], y: p[1]})),
 			goal: goalPoints.map(p=>({x: p[0], y: p[1]})),
+			stats
 		});
+
+		console.log("steps: "+stats.steps);
 
 		this.addJunctionIfNeeded(new Point(points[0]));
 		this.addJunctionIfNeeded(new Point(points[points.length-1]));

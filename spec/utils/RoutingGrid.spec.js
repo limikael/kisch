@@ -21,7 +21,7 @@ describe("RoutingGrid",()=>{
 			goal: [{x:10,y:5}]
 		}));
 		//console.log(grid.toGridString());
-		//console.log("steps: "+stats.steps);
+		console.log("steps: "+stats.steps);
 		//console.log(p);
 
 		expect(p).toEqual([ { x: 2, y: 1 }, { x: 1, y: 1 }, { x: 1, y: 7 }, { x: 3, y: 7 } ]);
