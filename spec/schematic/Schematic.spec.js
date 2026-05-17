@@ -8,6 +8,23 @@ import path from "path";
 let __dirname=dirnameFromImportMeta(import.meta);
 
 describe("schematic",()=>{
+	it("can create a schematic from empty",async ()=>{
+		fs.rmSync(path.join(__dirname,"../newproject"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../newproject.keep"),path.join(__dirname,"../newproject"),{recursive: true});
+
+		let fn=path.join(__dirname,"../newproject/newproject.kicad_sch");
+		let schematic=await loadSchematic(fn,{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		schematic.declare("U1",{
+            symbol: "Connector_Generic:Conn_01x04",
+            footprint: "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical",
+		});
+
+		await schematic.save(fn);
+	});
+
 	it("can open a schematic",async ()=>{
 		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
 		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});

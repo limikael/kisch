@@ -44,10 +44,17 @@ export default class Schematic {
 				this.entities.push(e);
 			}
 
-			if (sexpCallName(o)=="uuid")
-				this.uuid=o[1];
+			if (sexpCallName(o)=="uuid") {
+				let cand=o[1];
+				if (isSym(cand))
+					cand=symName(cand);
+
+				//console.log(cand);
+				this.uuid=cand;
+			}
 		}
 
+		//console.log("loaded: "+this.uuid);
 		this.sexp=this.sexp.filter(o=>!["wire","label","symbol","uuid"].includes(sexpCallName(o)));
 	}
 
