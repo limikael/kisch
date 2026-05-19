@@ -440,8 +440,14 @@ export default class Schematic {
 			]
 		]);
 
-		for (let i=1; i<=librarySymbol.pins.length; i++)
+		for (let p of librarySymbol.pins) {
+			expr.push([sym("pin"),p.number,[sym("uuid"),crypto.randomUUID()]]);
+		}
+
+		/*for (let i=1; i<=librarySymbol.pins.length; i++) {
+			//console.log("create pin: "+i);
 			expr.push([sym("pin"),String(i),[sym("uuid"),crypto.randomUUID()]]);
+		}*/
 
 		expr.push([sym("instances"),
 			[sym("project"),"",

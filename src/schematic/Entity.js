@@ -5,15 +5,25 @@ class EntityPin {
 	constructor(sexpr, entity) {
 		this.sexpr=sexpr;
 		this.entity=entity;
+
+		//console.log("ctor pin num: "+this.sexpr[1]);
 	}
 
 	getNum() {
+		//console.log("pin num: "+this.sexpr[1]);
+
 		return this.sexpr[1];
 	}
 
 	initPoint() {
 		let librarySymbol=this.entity.getLibrarySymbol();
-		let librarySymbolPin=librarySymbol.getPin(Number(this.getNum()));
+		let librarySymbolPin;
+		if (isNaN(this.getNum()))
+			librarySymbolPin=librarySymbol.getPin(this.getNum());
+
+		else
+			librarySymbolPin=librarySymbol.getPin(Number(this.getNum()));
+
 		let pinAt=Point.from(librarySymbolPin.at);
 		let symbolAt=this.entity.getAt();
 		let symbolRot=this.entity.getRotation();
@@ -283,13 +293,26 @@ export default class Entity {
 		if (!num)
 			throw new Error("Pin numbers start at 1");
 
-		for (let p of this.pins)
+		for (let p of this.pins) {
+			//console.log("pin num: "+p.getNum());
+
 			if (p.getNum()==num)
 				return p;
+		}
+
+		throw new Error("Can't find pin: "+num);
 	}
 
 	getType() {
 		return this.type;
+	}
+
+	getPinNums() {
+		let nums=[];
+		for (let p of this.pins)
+			nums.push(p.getNum())
+
+		return nums;
 	}
 
 	getConnectionPoints() {
@@ -304,8 +327,11 @@ export default class Entity {
 
 			case "symbol":
 				let p=[];
-				for (let i=1; i<=this.pins.length; i++)
-					p.push(this.pin(i).getPoint());
+				for (let num of this.getPinNums())
+					p.push(this.pin(num).getPoint());
+
+				/*for (let i=1; i<=this.pins.length; i++)
+					p.push(this.pin(i).getPoint());*/
 
 				return p;
 				break;
@@ -317,7 +343,7 @@ export default class Entity {
 
 	connect(...pins) {
 		if (this.getType()!="symbol")
-			throw new Error("can only connect sybols");
+			throw new Error("can only connect symbols");
 
 		if (pins.length!=this.pins.length)
 			throw new Error("pin count mismatch");

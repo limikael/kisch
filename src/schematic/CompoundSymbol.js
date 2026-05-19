@@ -4,10 +4,11 @@ export default class CompoundSymbol {
 		this.pins=[];
 
 		for (let symbol of symbols) {
-			for (let pin of symbol.pins) {
-				//console.log(pin.getNum());
+			let pinNums=symbol.getPinNums();
+			pinNums.sort();
 
-				this.pins.push(pin);
+			for (let pinNum of pinNums) {
+				this.pins.push(symbol.pin(pinNum));
 			}
 		}
 	}
