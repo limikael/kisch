@@ -24,6 +24,6 @@
     "commander": "^14.0.3"
   },
   "exports": {
-    ".": "./src/exports.js"
+    ".": "./src/app/exports.js"
   }
 }

@@ -376,6 +376,12 @@ export default class Schematic {
 		if (options.name)
 			entity.setName(options.name);
 
+		if (options.value)
+			entity.setProp("Value",options.value);
+
+		else
+			entity.removeProp("Value");
+
 		if (options.lcsc)
 			entity.setProp("lcsc",options.lcsc);
 
