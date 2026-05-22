@@ -70,6 +70,9 @@ class EntityPin {
 
 	connect(p) {
 		if (!p)
+			throw new Error("Can't connect to nothing");
+
+		if (this.entity.schematic.ignoreConnections)
 			return;
 
 		if (this.isConnected(p)) {

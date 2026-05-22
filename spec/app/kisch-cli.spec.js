@@ -95,4 +95,24 @@ describe("kisch-cli",()=>{
 
 		expect(schematic.getEntities({type: "symbol"}).length).toEqual(4);
 	});
+
+	it("can ignore wires",async ()=>{
+		fs.rmSync(path.join(__dirname,"../kitest"),{force: true, recursive: true});
+		fs.cpSync(path.join(__dirname,"../kitest.keep"),path.join(__dirname,"../kitest"),{recursive: true});
+
+		await runCommand("src/app/kisch-cli.js",[
+			"spec/kitest/kitest.kicad_sch",
+			"--script","spec/kitest/kitest-wires.js",
+			"--symbol-dir","/home/micke/Repo.ext/kicad-symbols",
+			"--no-wires",
+			"--quiet"
+		]);
+
+		let schematic=await loadSchematic("spec/kitest/kitest.kicad_sch",{
+			symbolLibraryPath: "/home/micke/Repo.ext/kicad-symbols"
+		});
+
+		expect(schematic.sym("J1").pin(1).isConnected(schematic.sym("J2").pin(2))).toEqual(true);
+		expect(schematic.sym("J4").pin(5).isConnected(schematic.sym("J3").pin(1))).toEqual(false);
+	});
 });

@@ -14,6 +14,11 @@ export default class Schematic {
 
 		this.symbolLibraryPath=options.symbolLibraryPath;
 		this.symbolLibrary=new SymbolLibrary(this.symbolLibraryPath);
+		this.ignoreConnections=false;
+	}
+
+	setIgnoreConnections(v) {
+		this.ignoreConnections=v;
 	}
 
 	async init() {
@@ -489,6 +494,9 @@ export default class Schematic {
 
 	removeUndeclared() {
 		this.entities=this.entities.filter(entity=>{
+			if (this.ignoreConnections && entity.type=="wire")
+				return true;
+
 			if (entity.type=="junction")
 				return true;
 

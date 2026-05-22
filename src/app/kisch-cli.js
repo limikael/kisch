@@ -42,6 +42,7 @@ program
     .option("-e, --emit <script.js>", "Emit script based on schematic.")
     .option("-q, --quiet", "No output, except for errors.")
     .option("-a, --append", "Append mode: don't remove undeclared.")
+    .option("--no-wires","Don't touch wires (adding/removig).")
     .option("--bounding-boxes", "Remove wires and draw bounding boxes instead (only for debug!).")
     //.option("-v, --verbose", "Print detailed execution info")
     .option(
@@ -67,6 +68,8 @@ try {
         options.input=program.args[0];
         options.output=program.args[0];
     }
+
+    //console.log("wires: "+options.wires);
 
     if (!options.input && !options.output)
         program.help();
@@ -101,6 +104,9 @@ try {
             symbolLibraryPath: options.symbolDir
         });
     }
+
+    if (!options.wires)
+        schematic.setIgnoreConnections(true);
 
     if (options.script) {
         cons.info("Applying script: "+options.script);
