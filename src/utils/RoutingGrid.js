@@ -67,14 +67,14 @@ export default class RoutingGrid {
 	}
 
 	drawLine(x1, y1, x2, y2) {
-		if (y1==y2)
+		if (this.snap(y1)==this.snap(y2))
 			this.drawHorizontalLine(x1,y2,x2);
 
-		else if (x1==x2)
+		else if (this.snap(x1)==this.snap(x2))
 			this.drawVerticalLine(x1,y1,y2);
 
 		else
-			throw new Error("can only draw h/v");
+			throw new Error("can only draw h/v, not: "+[x1,y1,x2,y2].toString());
 
 		this.drawPoint(x1,y1);
 		this.drawPoint(x2,y2);
