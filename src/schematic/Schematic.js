@@ -497,6 +497,9 @@ export default class Schematic {
 			if (this.ignoreConnections && entity.type=="wire")
 				return true;
 
+			if (this.ignoreConnections && entity.type=="label")
+				return true;
+
 			if (entity.type=="junction")
 				return true;
 
